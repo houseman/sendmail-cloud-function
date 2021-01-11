@@ -1,14 +1,8 @@
-import base64
-import json
-import os
-import subprocess
-
-import main
-
 import pytest
 
-import requests
-from requests.packages.urllib3.util.retry import Retry
+import base64
+import json
+
 
 from dataclasses import dataclass
 
@@ -62,47 +56,29 @@ def event(mail_message_encoded):
     return {"attributes": {}, "data": mail_message_encoded}
 
 
-def test_salepen_send_mail_unit(mocker, event, context):
-    main.salepen_send_mail(event, context)
+def test_event_contains_no_data(mocker, context):
+    from main import salepen_send_mail
+
+    (message, result) = salepen_send_mail({}, context)
+    assert result == 400
 
 
-def test_salepen_send_mail_integration(mocker, event, context):
-    # sudo ufw allow from any to any port 8088 proto tcp
-    port = 8088
+def test_event_contains_bad_data(mocker, context):
+    from main import salepen_send_mail
 
-    process = subprocess.Popen(
-        [
-            "functions-framework",
-            "--target",
-            "salepen_send_mail",
-            "--signature-type",
-            "event",
-            "--port",
-            str(port),
-        ],
-        cwd=os.path.dirname(__file__),
-        stdout=subprocess.PIPE,
-    )
+    (message, result) = salepen_send_mail({"data": "foobar"}, context)
+    assert result == 400
 
-    # Send HTTP request simulating Pub/Sub message
-    # (GCF translates Pub/Sub messages to HTTP requests internally)
-    # SEE https://amalgjose.com/2020/02/27/gunicorn-connection-in-use-0-0-0-0-8000/#:~:text=One%20of%20the%20common%20error,with%20some%20other%20running%20process.&text=Some%20stale%20process%20is%20making%20the%20port%20busy.
-    url = f"http://localhost:{port}/"
 
-    retry_policy = Retry(total=6, backoff_factor=1)
-    retry_adapter = requests.adapters.HTTPAdapter(max_retries=retry_policy)
+def test_send_message_request(mocker, event, context):
+    import requests
+    from main import salepen_send_mail
 
-    session = requests.Session()
-    session.mount(url, retry_adapter)
+    request_result = mocker.Mock()
+    request_result.status_code = 200
+    request_result.text = "OK"
 
-    response = session.post(url, json=event)
-    print(response.text)
+    mocker.patch.object(requests, "post", return_value=request_result)
 
-    assert response.status_code == 200
-
-    # Stop the functions framework process
-    process.kill()
-    process.wait()
-    out, err = process.communicate()
-
-    print(out, err, response.content)
+    (message, result) = salepen_send_mail(event, context)
+    assert result == 200

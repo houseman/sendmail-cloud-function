@@ -80,3 +80,10 @@ If your application and the emulator run on the same machine, you can set the en
     --member serviceAccount:876923987677-compute@developer.gserviceaccount.com
 
     $ gcloud secrets versions access 1 --secret="mailgun-api-sending-key"
+
+
+# pytest
+
+    $ export PYTHONPATH=.
+    $ pytest --import-mode importlib -vv
+
