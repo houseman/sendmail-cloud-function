@@ -1,8 +1,10 @@
 # Deploying the function
 
-    gcloud functions deploy salepen_send_mail \
+    $ cd function
+    $ gcloud functions deploy salepen_send_mail \
     --runtime python37 \
-    --trigger-topic salepen-send-welcome-email
+    --trigger-topic salepen-send-welcome-email \
+    --retry
 
     Deploying function (may take a while - up to 2 minutes)...⠛                                                                                                                                                       
     For Cloud Build Stackdriver Logs, visit: https://console.cloud.google.com/logs/viewer?project=sonic-signifier-298020&advancedFilter=resource.type%3Dbuild%0Aresource.labels.build_id%3Da33c7ff8-ac5d-4530-9573-01fc27559e2a%0AlogName%3Dprojects%2Fsonic-signifier-298020%2Flogs%2Fcloudbuild
