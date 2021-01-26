@@ -1,8 +1,8 @@
 def test_mail_server_response_error():
-    from exceptions import MailServerResponseError
+    from exceptions import ApiResponseError
 
-    error = MailServerResponseError(status_code=400, text="Test")
+    error = ApiResponseError(status_code=400, message="Test")
 
     assert error.status_code == 400
-    assert error.text == "Test"
+    assert error.message == "Test"
     assert str(error) == "Test"

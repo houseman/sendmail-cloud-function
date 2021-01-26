@@ -1,15 +1,26 @@
-class DuplicateMessageError(Exception):
-    pass
-
-
-class MailServerResponseError(Exception):
+class BaseError(Exception):
     status_code: int
-    text: str
+    message: str
 
-    def __init__(self, status_code: int, text: str, *args: object) -> None:
+    def __init__(self, status_code: int, message: str, *args: object) -> None:
         self.status_code = status_code
-        self.text = text
+        self.message = message
         super().__init__(*args)
 
     def __str__(self) -> str:
-        return self.text
+        return self.message
+
+    def __repr__(self) -> str:
+        return f"[{self.status_code}] {self.message}"
+
+
+class DuplicateMessageError(BaseError):
+    pass
+
+
+class ApiResponseError(BaseError):
+    pass
+
+
+class PayloadError(BaseError):
+    pass
