@@ -2,6 +2,8 @@ import pytest
 import base64
 import json
 
+from datetime import datetime
+
 from models import MailMessage
 
 
@@ -73,3 +75,44 @@ def test_get_message_from_payload(mock_event, mock_message_object):
     controller = Controller()
     output = controller._get_message_from_payload(mock_event)
     assert output == mock_message_object
+
+
+@pytest.mark.parametrize(
+    "transaction_log, response_code",
+    [({}, 200), ({"completed_at": datetime.now()}, 429)],
+)
+def test_send_message(
+    mocker, transaction_log, response_code, mock_message_object, mock_context
+):
+    from google.cloud import datastore
+
+    from controllers import Controller
+
+    controller = Controller()
+
+    key = mocker.Mock()
+    mocker.patch.object(controller._datastore_client, "key", return_value=key)
+
+    mocker.patch.object(
+        controller._datastore_client, "get", return_value=transaction_log
+    )
+    mocker.patch.object(controller._datastore_client, "put")
+    mocker.patch.object(datastore, "Entity", return_value=transaction_log)
+
+    output = controller._send_message(mock_message_object, mock_context)
+
+    assert output.response_code == response_code
+
+
+def test_send(mocker, mock_event, mock_context):
+    from controllers import Controller
+    from models import ApiResponse, ControllerResponse
+
+    controller = Controller()
+
+    api_response = ApiResponse(message="OK", response_code=200)
+
+    mocker.patch.object(controller, "_send_message", return_value=api_response)
+    output = controller.send(mock_event, mock_context)
+
+    assert output == ControllerResponse(message="OK", response_code=200)

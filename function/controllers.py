@@ -27,28 +27,21 @@ class Controller:
     def send(self, event: Dict, context: Context) -> ControllerResponse:
         try:
 
-            message = self._get_message_from_payload()
+            message = self._get_message_from_payload(event)
             result = self._send_message(message, context)
 
-            logging.info(
-                f"{self._config.MAILGUN_HOST} replied: [{result.status_code}] {result.text}"
-            )
+            logging.info(f"{result}")
 
             return ControllerResponse(
-                message=result.text, response_code=result.status_code
-            )
-        except DuplicateMessageError as error:
-            logging.error(f"{error}")
-
-            return ControllerResponse(message=f"{error}", response_code=429)
-        except ApiResponseError as error:
-            logging.error(f"{error}")
-
-            return ControllerResponse(
-                message=error.text, response_code=error.result_code
+                message=result.message, response_code=result.response_code
             )
 
-    def _send_message(self, message: MailMessage, context: Context) -> Dict:
+        except Exception as error:
+            logging.error(f"{error}")
+
+            raise error
+
+    def _send_message(self, message: MailMessage, context: Context) -> ApiResponse:
         with self._datastore_client.transaction():
             key = self._datastore_client.key("EmailTransactionLog", context.event_id)
 
@@ -59,17 +52,19 @@ class Controller:
                 transaction_log = datastore.Entity(key)
 
             if transaction_log.get("completed_at"):
-                raise DuplicateMessageError(
-                    f"Message ID {context.event_id} previously completed"
+                # If `completed_at` is set, this message has been delivered
+                return ApiResponse(
+                    response_code=429,
+                    message=f"Message ID {context.event_id} previously completed",
                 )
 
             result = self._send_to_api(message)
 
-            if result.status_code == 200:
+            if result.response_code == 200:
                 transaction_log.update({"completed_at": datetime.now()})
                 self._datastore_client.put(transaction_log)
 
-            return result.text, result.status_code
+            return result
 
     def _get_message_from_payload(self, event: Dict) -> MailMessage:
         try:
