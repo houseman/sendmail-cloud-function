@@ -1,13 +1,11 @@
-import pytest
-
 import google.auth
+import pytest
 
 
 @pytest.mark.parametrize("secret_string", [("secret"), ("Something else")])
 def test_get_mailgun_api_sending_key(mocker, secret_string):
-    from google.cloud import secretmanager_v1
-
     from config import Config
+    from google.cloud import secretmanager_v1
 
     mocker.patch.object(google.auth, "default", return_value=(None, "project-id"))
     mocker.patch.object(
@@ -40,12 +38,10 @@ def test_get_mailgun_api_sending_key_exception(mocker):
 
 
 def test_get_mailgun_api_sending_key_exceptions(mocker):
-    from google.auth.exceptions import DefaultCredentialsError
-    from google.api_core.exceptions import PermissionDenied
-
-    from google.cloud import secretmanager_v1
-
     from config import Config
+    from google.api_core.exceptions import PermissionDenied
+    from google.auth.exceptions import DefaultCredentialsError
+    from google.cloud import secretmanager_v1
 
     mocker.patch.object(
         google.auth, "default", side_effect=DefaultCredentialsError("Foo")
@@ -65,10 +61,8 @@ def test_get_mailgun_api_sending_key_exceptions(mocker):
 
 def test_create_logger(mocker):
     import google.cloud.logging
-
-    from google.auth.exceptions import DefaultCredentialsError
-
     from config import Config
+    from google.auth.exceptions import DefaultCredentialsError
 
     logging_client = mocker.Mock()
     mocker.patch.object(logging_client, "get_default_handler")

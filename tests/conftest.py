@@ -1,7 +1,7 @@
-import pytest
 import base64
 import json
 
+import pytest
 from models import MailMessage
 
 

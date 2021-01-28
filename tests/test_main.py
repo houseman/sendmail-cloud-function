@@ -1,16 +1,5 @@
-from proto import message
-import pytest
-
-
-from dataclasses import dataclass
-
-# SEE https://cloud.google.com/functions/docs/testing/test-background
-# SEE https://github.com/GoogleCloudPlatform/functions-framework-python
-
-
 def test_salepen_send_mail(mocker, mock_event, mock_context):
     import main
-
     from controllers import Controller
     from models import ControllerResponse
 

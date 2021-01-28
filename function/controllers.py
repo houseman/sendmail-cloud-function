@@ -1,21 +1,15 @@
 import base64
-from datetime import datetime
 import json
 import logging
+from datetime import datetime
+from typing import Dict
 
 import requests
-
-from typing import Dict, Tuple
-
-from google.cloud.functions.context import Context
-from google.cloud import datastore
-
-from exceptions import (
-    PayloadError,
-    ApiResponseError,
-)
-from models import ApiResponse, ControllerResponse, MailMessage
 from config import Config
+from exceptions import ApiResponseError, PayloadError
+from google.cloud import datastore  # type: ignore
+from google.cloud.functions.context import Context  # type: ignore
+from models import ApiResponse, ControllerResponse, MailMessage
 
 
 class Controller:
@@ -83,15 +77,22 @@ class Controller:
             raise PayloadError(message=error_message, status_code=400)
 
     def _send_to_api(self, message) -> ApiResponse:
-        response = requests.post(
-            f"https://{self._config.MAILGUN_HOST}/v3/mg.stockfair.net/messages",
-            auth=("api", self._config.MAILGUN_API_SENDING_KEY),
-            data={
-                "from": message.sender,
-                "to": [message.recipient],
-                "subject": message.subject,
-                "html": message.html_content,
-                "text": message.text_content,
-            },
-        )
-        return ApiResponse(response_code=response.status_code, message=response.text)
+        try:
+            response = requests.post(
+                f"https://{self._config.MAILGUN_HOST}/v3/mg.stockfair.net/messages",
+                auth=("api", self._config.MAILGUN_API_SENDING_KEY),
+                data={
+                    "from": message.sender,
+                    "to": [message.recipient],
+                    "subject": message.subject,
+                    "html": message.html_content,
+                    "text": message.text_content,
+                },
+            )
+            return ApiResponse(
+                response_code=response.status_code, message=response.text
+            )
+        except Exception as error:
+            logging.error(f"{error}")
+
+            raise ApiResponseError(500, f"{error}")

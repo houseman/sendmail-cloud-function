@@ -1,5 +1,6 @@
-import pytest
 from datetime import datetime
+
+import pytest
 
 
 def test_send_to_api(mocker, mock_message_object):
@@ -33,9 +34,8 @@ def test_get_message_from_payload(mock_event, mock_message_object):
 def test_send_message(
     mocker, transaction_log, response_code, mock_message_object, mock_context
 ):
-    from google.cloud import datastore
-
     from controllers import Controller
+    from google.cloud import datastore
 
     controller = Controller()
 

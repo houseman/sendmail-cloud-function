@@ -6,9 +6,9 @@
     --trigger-topic salepen-send-welcome-email \
     --retry
 
-    Deploying function (may take a while - up to 2 minutes)...⠛                                                                                                                                                       
+    Deploying function (may take a while - up to 2 minutes)...⠛
     For Cloud Build Stackdriver Logs, visit: https://console.cloud.google.com/logs/viewer?project=sonic-signifier-298020&advancedFilter=resource.type%3Dbuild%0Aresource.labels.build_id%3Da33c7ff8-ac5d-4530-9573-01fc27559e2a%0AlogName%3Dprojects%2Fsonic-signifier-298020%2Flogs%2Fcloudbuild
-    Deploying function (may take a while - up to 2 minutes)...done.                                                                                                                                                   
+    Deploying function (may take a while - up to 2 minutes)...done.
     availableMemoryMb: 256
     buildId: a33c7ff8-ac5d-4530-9573-01fc27559e2a
     entryPoint: salepen_send_mail
@@ -56,7 +56,7 @@ If your application and the emulator run on the same machine, you can set the en
 
     $ $(gcloud beta emulators pubsub env-init)
     $ export GOOGLE_APPLICATION_CREDENTIALS="/home/scott/.google/keys/sonic-signifier-298020-a9e3e7013c5c.json"
-    
+
     $ cd ~/workspace/
     $ git clone https://github.com/googleapis/python-pubsub.git
     $ cd python-pubsub/
@@ -88,4 +88,3 @@ If your application and the emulator run on the same machine, you can set the en
 
     $ export PYTHONPATH=.
     $ pytest --import-mode importlib -vv
-

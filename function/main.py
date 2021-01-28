@@ -1,11 +1,9 @@
 import logging
-
 from typing import Dict, Tuple
-
-from google.cloud.functions.context import Context
 
 from config import Config
 from controllers import Controller
+from google.cloud.functions.context import Context  # type: ignore
 
 Config().create_logger()
 
