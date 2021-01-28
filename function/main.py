@@ -1,18 +1,18 @@
 import logging
 
-from typing import Dict
+from typing import Dict, Tuple
 
 from google.cloud.functions.context import Context
 
 from config import Config
-from controller import Controller
+from controllers import Controller
 
 Config().create_logger()
 
 controller = Controller()
 
 
-def salepen_send_mail(event: Dict, context: Context) -> None:
+def salepen_send_mail(event: Dict, context: Context) -> Tuple[str, int]:
     """Background Cloud Function to be triggered by Pub/Sub.
     Args:
          event (dict): Dict contains event data;
@@ -23,4 +23,7 @@ def salepen_send_mail(event: Dict, context: Context) -> None:
          context.timestamp: contains the publish time.
     """
     logging.info(f"{__name__} triggered with event_id {context.event_id}")
-    return controller.send(event, context)
+    controller = Controller()
+    response = controller.send(event, context)
+
+    return (response.message, response.response_code)

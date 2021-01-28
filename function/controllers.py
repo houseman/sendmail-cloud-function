@@ -12,8 +12,6 @@ from google.cloud import datastore
 
 from exceptions import (
     PayloadError,
-    BaseError,
-    DuplicateMessageError,
     ApiResponseError,
 )
 from models import ApiResponse, ControllerResponse, MailMessage
@@ -77,11 +75,6 @@ class Controller:
                 html_content=message["html_content"],
                 text_content=message["text_content"],
             )
-        except AttributeError as error:
-            error_message = f"Badly-formed message: Attribute {error} not found"
-            logging.error(error_message)
-
-            raise PayloadError(error_message)
         except Exception as error:
             """ If a message could not be decoded from the payload, return (400)"""
             error_message = f"Message payload could not be decoded: {error}"

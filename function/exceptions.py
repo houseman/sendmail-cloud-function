@@ -8,14 +8,10 @@ class BaseError(Exception):
         super().__init__(*args)
 
     def __str__(self) -> str:
-        return self.message
+        return self.__repr__()
 
     def __repr__(self) -> str:
         return f"[{self.status_code}] {self.message}"
-
-
-class DuplicateMessageError(BaseError):
-    pass
 
 
 class ApiResponseError(BaseError):
