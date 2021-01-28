@@ -7,8 +7,8 @@ from typing import Dict
 import requests
 from config import Config
 from exceptions import ApiResponseError, PayloadError
-from google.cloud import datastore  # type: ignore
-from google.cloud.functions.context import Context  # type: ignore
+from google.cloud import datastore
+from google.cloud.functions.context import Context
 from models import ApiResponse, ControllerResponse, MailMessage
 
 

@@ -1,12 +1,11 @@
 import logging
 from typing import Optional
 
-import google.auth  # type: ignore
-import google.cloud.logging  # type: ignore
-from google.api_core.exceptions import \
-    PermissionDenied as PermissionDeniedError  # type: ignore
-from google.auth.exceptions import DefaultCredentialsError  # type: ignore
-from google.cloud import secretmanager_v1 as secretmanager  # type: ignore
+import google.auth
+import google.cloud.logging
+from google.api_core.exceptions import PermissionDenied as PermissionDeniedError
+from google.auth.exceptions import DefaultCredentialsError
+from google.cloud import secretmanager_v1 as secretmanager
 
 
 class Config:
