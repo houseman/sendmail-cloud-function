@@ -1,7 +1,7 @@
 def test_salepen_send_mail(mocker, mock_event, mock_context):
     import main
-    from controllers import Controller
-    from models import ControllerResponse
+    from cloudfunc.controllers import Controller
+    from cloudfunc.models import ControllerResponse
 
     response = ControllerResponse(message="OK", response_code=200)
     mocker.patch.object(Controller, "send", return_value=response)

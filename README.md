@@ -1,9 +1,22 @@
+# Create a pub/sub topic
+
+https://cloud.google.com/pubsub/docs/quickstart-cli#create_a_subscription
+
+```
+$ gcloud pubsub topics create function-send-email
+Created topic [projects/sonic-signifier-298020/topics/function-send-email].
+```
+
 # Deploying the function
+
+https://cloud.google.com/functions/docs/deploying/filesystem#deploy_using_the_gcloud_tool
+
 
     $ cd function
     $ gcloud functions deploy salepen_send_mail \
-    --runtime python37 \
-    --trigger-topic salepen-send-welcome-email \
+    --entry-point salepen_send_mail \
+    --runtime python38 \
+    --trigger-topic function-send-email \
     --retry
 
     Deploying function (may take a while - up to 2 minutes)...⠛

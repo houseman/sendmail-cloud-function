@@ -5,11 +5,11 @@ from datetime import datetime
 from typing import Dict
 
 import requests
-from config import Config
-from exceptions import ApiResponseError, PayloadError
+from cloudfunc.config import Config
+from cloudfunc.exceptions import ApiResponseError, PayloadError
+from cloudfunc.models import ApiResponse, ControllerResponse, MailMessage
 from google.cloud import datastore
 from google.cloud.functions.context import Context
-from models import ApiResponse, ControllerResponse, MailMessage
 
 
 class Controller:

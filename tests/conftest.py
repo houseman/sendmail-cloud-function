@@ -2,7 +2,7 @@ import base64
 import json
 
 import pytest
-from models import MailMessage
+from cloudfunc.models import MailMessage
 
 
 @pytest.fixture()

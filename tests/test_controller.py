@@ -5,7 +5,7 @@ import pytest
 
 def test_send_to_api(mocker, mock_message_object):
     import requests
-    from controllers import Controller
+    from cloudfunc.controllers import Controller
 
     request_result = mocker.Mock()
     request_result.status_code = 200
@@ -20,7 +20,7 @@ def test_send_to_api(mocker, mock_message_object):
 
 
 def test_get_message_from_payload(mock_event, mock_message_object):
-    from controllers import Controller
+    from cloudfunc.controllers import Controller
 
     controller = Controller()
     output = controller._get_message_from_payload(mock_event)
@@ -34,7 +34,7 @@ def test_get_message_from_payload(mock_event, mock_message_object):
 def test_send_message(
     mocker, transaction_log, response_code, mock_message_object, mock_context
 ):
-    from controllers import Controller
+    from cloudfunc.controllers import Controller
     from google.cloud import datastore
 
     controller = Controller()
@@ -54,8 +54,8 @@ def test_send_message(
 
 
 def test_send(mocker, mock_event, mock_context):
-    from controllers import Controller
-    from models import ApiResponse, ControllerResponse
+    from cloudfunc.controllers import Controller
+    from cloudfunc.models import ApiResponse, ControllerResponse
 
     controller = Controller()
 
@@ -68,8 +68,8 @@ def test_send(mocker, mock_event, mock_context):
 
 
 def test_attribute_exception():
-    from controllers import Controller
-    from exceptions import PayloadError
+    from cloudfunc.controllers import Controller
+    from cloudfunc.exceptions import PayloadError
 
     controller = Controller()
 
@@ -78,7 +78,7 @@ def test_attribute_exception():
 
 
 def test_bad_send(mock_context):
-    from controllers import Controller
+    from cloudfunc.controllers import Controller
 
     controller = Controller()
 

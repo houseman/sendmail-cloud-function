@@ -1,8 +1,8 @@
 import logging
 from typing import Dict, Tuple
 
-from config import Config
-from controllers import Controller
+from cloudfunc.config import Config
+from cloudfunc.controllers import Controller
 from google.cloud.functions.context import Context
 
 Config().create_logger()
