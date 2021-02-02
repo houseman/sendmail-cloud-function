@@ -11,16 +11,22 @@ controller = Controller()
 
 
 def salepen_send_mail(event: Dict, context: Context) -> Tuple[str, int]:
-    """Background Cloud Function to be triggered by Pub/Sub.
+    """A background Google Cloud Function to be triggered by a Pub/Sub message.
+
     Args:
-         event (dict): Dict contains event data;
-         event["data"]: contains the PubsubMessage message.
-         event["attributes"]: contain custom attributes if there are any.
-         context (google.cloud.functions.Context): event metadata.
-         context.event_id: the Pub/Sub message ID.
-         context.timestamp: contains the publish time.
+         event: Dict contains event data;
+         - event["data"]: contains the PubsubMessage message.
+         - event["attributes"]: contain custom attributes if there are any.
+         context: Context Event metadata (if any).
+         - context.event_id: int The Pub/Sub message ID.
+         - context.timestamp: datetime The message publish time.
+
+     Returns:
+          A Tuple of (message: str, response_code: int)
     """
+
     logging.info(f"{__name__} triggered with event_id {context.event_id}")
+
     controller = Controller()
     response = controller.send(event, context)
 

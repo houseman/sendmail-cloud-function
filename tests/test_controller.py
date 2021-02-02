@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+from cloudfunc.models import ApiResponse, TransactionRecord
 
 
 def test_send_to_api(mocker, mock_message_object):
@@ -28,29 +29,38 @@ def test_get_message_from_payload(mock_event, mock_message_object):
 
 
 @pytest.mark.parametrize(
-    "transaction_log, response_code",
-    [({}, 200), ({"completed_at": datetime.now()}, 429)],
+    "transaction_record, api_response",
+    [
+        (TransactionRecord(try_count=3), ApiResponse(response_code=200, message="OK")),
+        (TransactionRecord(try_count=0), ApiResponse(response_code=200, message="OK")),
+        (
+            TransactionRecord(try_count=1, completed_at=datetime.now()),
+            ApiResponse(
+                response_code=429,
+                message="Message ID 617187464135194 previously completed",
+            ),
+        ),
+    ],
 )
 def test_send_message(
-    mocker, transaction_log, response_code, mock_message_object, mock_context
+    mocker, transaction_record, api_response, mock_message_object, mock_context
 ):
     from cloudfunc.controllers import Controller
-    from google.cloud import datastore
+    from cloudfunc.utils import TransactionUtil
+
+    mock_tu = mocker.Mock()
+    mock_tu.create_entity.return_value = transaction_record
+
+    mocker.patch.object(mock_tu, "commit")
+    mocker.patch.object(TransactionUtil, "start", return_value=mock_tu)
 
     controller = Controller()
 
-    key = mocker.Mock()
-    mocker.patch.object(controller._datastore_client, "key", return_value=key)
-
-    mocker.patch.object(
-        controller._datastore_client, "get", return_value=transaction_log
-    )
-    mocker.patch.object(controller._datastore_client, "put")
-    mocker.patch.object(datastore, "Entity", return_value=transaction_log)
+    mocker.patch.object(controller, "_send_to_api", return_value=api_response)
 
     output = controller._send_message(mock_message_object, mock_context)
 
-    assert output.response_code == response_code
+    assert output == api_response
 
 
 def test_send(mocker, mock_event, mock_context):

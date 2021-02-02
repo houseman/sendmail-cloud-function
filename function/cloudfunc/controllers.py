@@ -7,16 +7,33 @@ from typing import Dict
 import requests
 from cloudfunc.config import Config
 from cloudfunc.exceptions import ApiResponseError, PayloadError
-from cloudfunc.models import ApiResponse, ControllerResponse, MailMessage
-from google.cloud import datastore
+from cloudfunc.models import (
+    ApiResponse,
+    ControllerResponse,
+    MailMessage,
+    TransactionRecord,
+)
+from cloudfunc.utils import TransactionUtil
 from google.cloud.functions.context import Context
 
 
 class Controller:
-    _datastore_client = datastore.Client()
+    """Controller class that contains logic for sending an Email contained within
+    the encoded Pub/Sub message.
+    """
+
     _config = Config()
 
     def send(self, event: Dict, context: Context) -> ControllerResponse:
+        """Send an email contained in within the encoded Pub/Sub message}.
+
+        Args:
+            event: Dict contains event data;
+            context: Context Event metadata (if any).
+
+        Returns:
+            ControllerResponse
+        """
         try:
 
             message = self._get_message_from_payload(event)
@@ -34,29 +51,31 @@ class Controller:
             raise error
 
     def _send_message(self, message: MailMessage, context: Context) -> ApiResponse:
-        with self._datastore_client.transaction():
-            key = self._datastore_client.key("EmailTransactionLog", context.event_id)
+        tu = TransactionUtil().start()
+        transaction: TransactionRecord = tu.create_entity(
+            "EmailTransactionLog", context.event_id
+        )
+        transaction.try_count += 1
+        if transaction.completed_at:
+            # If `completed_at` is set, this message has been delivered
+            return ApiResponse(
+                response_code=429,
+                message=f"Message ID {context.event_id} previously completed",
+            )
 
-            transaction_log = self._datastore_client.get(key)
+        if transaction.try_count > 3:
+            # Mark as "done", so that we do not try amd process again
+            transaction.completed_at = datetime.now()
 
-            if not transaction_log:
-                # Create the Entity if the key doesnot exist
-                transaction_log = datastore.Entity(key)
+        result = self._send_to_api(message)
 
-            if transaction_log.get("completed_at"):
-                # If `completed_at` is set, this message has been delivered
-                return ApiResponse(
-                    response_code=429,
-                    message=f"Message ID {context.event_id} previously completed",
-                )
+        if result.response_code == 200:
+            transaction.completed_at = datetime.now()
 
-            result = self._send_to_api(message)
+        # Update the datastore
+        tu.commit(transaction)
 
-            if result.response_code == 200:
-                transaction_log.update({"completed_at": datetime.now()})
-                self._datastore_client.put(transaction_log)
-
-            return result
+        return result
 
     def _get_message_from_payload(self, event: Dict) -> MailMessage:
         try:
