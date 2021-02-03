@@ -13,8 +13,8 @@ https://cloud.google.com/functions/docs/deploying/filesystem#deploy_using_the_gc
 
 
     $ cd function
-    $ gcloud functions deploy salepen_send_mail \
-    --entry-point salepen_send_mail \
+    $ gcloud functions deploy cloud_send_mail \
+    --entry-point cloud_send_mail \
     --runtime python38 \
     --trigger-topic function-send-email \
     --retry
@@ -24,7 +24,7 @@ https://cloud.google.com/functions/docs/deploying/filesystem#deploy_using_the_gc
     Deploying function (may take a while - up to 2 minutes)...done.
     availableMemoryMb: 256
     buildId: a33c7ff8-ac5d-4530-9573-01fc27559e2a
-    entryPoint: salepen_send_mail
+    entryPoint: cloud_send_mail
     eventTrigger:
     eventType: google.pubsub.topic.publish
     failurePolicy: {}
@@ -33,7 +33,7 @@ https://cloud.google.com/functions/docs/deploying/filesystem#deploy_using_the_gc
     ingressSettings: ALLOW_ALL
     labels:
     deployment-tool: cli-gcloud
-    name: projects/sonic-signifier-298020/locations/us-central1/functions/salepen_send_mail
+    name: projects/sonic-signifier-298020/locations/us-central1/functions/cloud_send_mail
     runtime: python37
     serviceAccountEmail: sonic-signifier-298020@appspot.gserviceaccount.com
     sourceUploadUrl: https://storage.googleapis.com/gcf-upload-us-central1-545a3224-aa4c-4233-bd2c-a6b9af707d49/9208f712-a47f-4bb1-991e-f3c10d439b71.zip?GoogleAccessId=service-876923987677@gcf-admin-robot.iam.gserviceaccount.com&Expires=1610037848&Signature=xk6hzcTcZ1BU8l%2BQRQFXr60uKoHL5GKtVtPOoIXySgMXJiqPbctP4N48Oc0d9xLfg27xQtaFQsKd0BIki9o%2BmCnF%2FJTwzYJz2xjQcLxVmO051bIqCXz8696j%2B%2B2KXogD8hmnfHZqiQ%2FbX%2FHqCwheziUImAtZHGwv3P4R6bwrRuFQgrLrHM9E%2BL%2BKWVMX3kMQFI8RJn%2F14KPmvyT6rSCYr3hfgpJ8cexu1OoOdNCJdmdgwVj2F82f%2FDa4pvhzSuwz4iqM88NjbZK6pKBOLkX3qRlcIzpFt7U%2FLSdtwKyze7oxKfQWNK7dOdK2MPU4NjihZxERdCatXz0jLUuHU%2Fm9RQ%3D%3D
@@ -44,7 +44,7 @@ https://cloud.google.com/functions/docs/deploying/filesystem#deploy_using_the_gc
 
 # To view logs
 
-    $ gcloud functions logs read salepen_send_mail
+    $ gcloud functions logs read cloud_send_mail
     $ gcloud logging read "log_name:projects/sonic-signifier-298020/logs/python"
 
 

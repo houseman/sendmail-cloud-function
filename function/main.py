@@ -10,7 +10,7 @@ Config().create_logger()
 controller = Controller()
 
 
-def salepen_send_mail(event: Dict, context: Context) -> Tuple[str, int]:
+def cloud_send_mail(event: Dict, context: Context) -> Tuple[str, int]:
     """A background Google Cloud Function to be triggered by a Pub/Sub message.
 
     Args:
