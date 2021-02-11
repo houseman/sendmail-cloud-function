@@ -54,7 +54,7 @@ class Config:
     def create_logger() -> None:
         client = LoggingClient()
         handler = CloudLoggingHandler(client, name="sendmail-cloud-function")
-        logging.getLogger().setLevel(logging.INFO)  # defaults to WARN
+        logging.getLogger().setLevel(logging.DEBUG)  # defaults to WARN
         setup_logging(handler)
 
         return None
