@@ -53,7 +53,7 @@ class Config:
     @staticmethod
     def create_logger() -> None:
         client = LoggingClient()
-        handler = CloudLoggingHandler(client)
+        handler = CloudLoggingHandler(client, name="sendmail-cloud-function")
         logging.getLogger().setLevel(logging.INFO)  # defaults to WARN
         setup_logging(handler)
 

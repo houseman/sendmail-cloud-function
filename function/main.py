@@ -27,7 +27,6 @@ def cloud_send_mail(event: Dict, context: Context) -> Tuple[str, int]:
 
     logging.info(f"{__name__} triggered with event_id {context.event_id}")
 
-    controller = Controller()
     response = controller.send(event, context)
 
     logging.info(f"Event {context.event_id} result: {response}")
