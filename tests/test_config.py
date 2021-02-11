@@ -57,25 +57,3 @@ def test_get_mailgun_api_sending_key_exceptions(mocker):
     )
     with pytest.raises(Exception):
         assert Config()
-
-
-def test_create_logger(mocker):
-    import google.cloud.logging
-    from cloudfunc.config import Config
-    from google.auth.exceptions import DefaultCredentialsError
-
-    logging_client = mocker.Mock()
-    mocker.patch.object(logging_client, "get_default_handler")
-    mocker.patch.object(logging_client, "setup_logging")
-
-    mocker.patch.object(google.cloud.logging, "Client", return_value=logging_client)
-
-    output = Config().create_logger()
-
-    assert output == logging_client
-
-    mocker.patch.object(
-        google.cloud.logging, "Client", side_effect=DefaultCredentialsError("Foo")
-    )
-    with pytest.raises(Exception):
-        assert Config().create_logger()

@@ -52,7 +52,7 @@ https://cloud.google.com/functions/docs/deploying/filesystem#deploy_using_the_gc
 
 # Triggering the function
 
-    gcloud pubsub topics publish salepen-send-welcome-email --message YOUR_NAME
+    gcloud pubsub topics publish function-send-email --message YOUR_NAME
 
 # Installing the emulator
 
@@ -79,7 +79,7 @@ If your application and the emulator run on the same machine, you can set the en
     $ pyenv local python-pubsub
     $ pip install google-cloud-pubsub
     $ cd samples/snippets/
-    $ python publisher.py thirsty-sailor-290220 create salepen-send-welcome-email
+    $ python publisher.py thirsty-sailor-290220 create function-send-email
 
 # Return to using cloud
 

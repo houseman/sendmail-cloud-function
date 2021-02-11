@@ -2,10 +2,11 @@ import logging
 from typing import Optional
 
 import google.auth
-import google.cloud.logging
 from google.api_core.exceptions import PermissionDenied as PermissionDeniedError
 from google.auth.exceptions import DefaultCredentialsError
 from google.cloud import secretmanager_v1 as secretmanager
+from google.cloud.logging import Client as LoggingClient
+from google.cloud.logging.handlers import CloudLoggingHandler, setup_logging
 
 
 class Config:
@@ -50,14 +51,10 @@ class Config:
             raise Exception(exception)
 
     @staticmethod
-    def create_logger():
-        try:
-            logging_client = google.cloud.logging.Client()
-            logging_client.get_default_handler()
-            logging_client.setup_logging()
+    def create_logger() -> None:
+        client = LoggingClient()
+        handler = CloudLoggingHandler(client)
+        logging.getLogger().setLevel(logging.INFO)  # defaults to WARN
+        setup_logging(handler)
 
-            return logging_client
-
-        except DefaultCredentialsError as exception:
-            logging.error(exception)
-            raise Exception("Could not create a logging client")
+        return None

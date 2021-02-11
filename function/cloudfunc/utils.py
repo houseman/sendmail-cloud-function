@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import Union
 
 from cloudfunc.models import TransactionRecord
@@ -19,6 +20,7 @@ class TransactionUtil:
         """
         Create a Google Cloud Datastore `Transaction`
         """
+        logging.info("Begin transaction")
         self._transaction = self._client.transaction()
         self._transaction.begin()
 
@@ -29,6 +31,7 @@ class TransactionUtil:
         Commit the current tranaction to the datastore, using state from the given
         `TransactionRecord` instance.
         """
+        logging.info(f"Commit transaction: {transaction.__dict__}")
         self._entity.update(transaction.__dict__)
         self._client.put(self._entity)
         self._transaction.commit()

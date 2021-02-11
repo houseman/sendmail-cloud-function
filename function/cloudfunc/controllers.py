@@ -55,6 +55,7 @@ class Controller:
         transaction: TransactionRecord = tu.create_entity(
             "EmailTransactionLog", context.event_id
         )
+        logging.info(f"transaction log: {transaction}")
         transaction.try_count += 1
         if transaction.completed_at:
             # If `completed_at` is set, this message has been delivered
@@ -108,6 +109,7 @@ class Controller:
                     "text": message.text_content,
                 },
             )
+            logging.info(f"Server {self._config.MAILGUN_HOST} replied: {response}")
             return ApiResponse(
                 response_code=response.status_code, message=response.text
             )
