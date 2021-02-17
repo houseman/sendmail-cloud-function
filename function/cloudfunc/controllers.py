@@ -79,8 +79,21 @@ class Controller:
         return result
 
     def _get_message_from_payload(self, event: Dict) -> MailMessage:
+        """
+        Return a `MailMessage` object, populated with data from the Pub/Sub message
+        payload.
+        """
+
         try:
             message = json.loads(base64.b64decode(event["data"]).decode("utf-8"))
+        except Exception as error:
+            """ If a message could not be decoded from the payload, return (400)"""
+
+            error_message = f"Message payload could not be decoded: {error}"
+            logging.error(error_message)
+
+            raise PayloadError(message=error_message, status_code=400)
+        else:
 
             return MailMessage(
                 recipient=message["rcpt"],
@@ -89,17 +102,16 @@ class Controller:
                 html_content=message["html_content"],
                 text_content=message["text_content"],
             )
-        except Exception as error:
-            """ If a message could not be decoded from the payload, return (400)"""
-            error_message = f"Message payload could not be decoded: {error}"
-            logging.error(error_message)
 
-            raise PayloadError(message=error_message, status_code=400)
+    def _send_to_api(self, message: MailMessage) -> ApiResponse:
+        """
+        Send a `MailMessage` object data to the *Mailgun* endpoint.
+        """
 
-    def _send_to_api(self, message) -> ApiResponse:
         try:
             response = requests.post(
-                f"https://{self._config.MAILGUN_HOST}/v3/mg.stockfair.net/messages",
+                f"https://{self._config.MAILGUN_HOST}/v3/"
+                f"{self._config.MAILGUN_DOMAIN}/messages",
                 auth=("api", self._config.MAILGUN_API_SENDING_KEY),
                 data={
                     "from": message.sender,
@@ -109,11 +121,14 @@ class Controller:
                     "text": message.text_content,
                 },
             )
-            logging.info(f"Server {self._config.MAILGUN_HOST} replied: {response}")
-            return ApiResponse(
-                response_code=response.status_code, message=response.text
-            )
         except Exception as error:
             logging.error(f"{error}")
 
-            raise ApiResponseError(500, f"{error}")
+            raise ApiResponseError(status_code=500, message=f"{error}")
+        else:
+            logging.info(f"Server {self._config.MAILGUN_HOST} replied: {response}")
+
+            # If no error was raised, map response to a `ApiResponse` object and return
+            return ApiResponse(
+                response_code=response.status_code, message=response.text
+            )

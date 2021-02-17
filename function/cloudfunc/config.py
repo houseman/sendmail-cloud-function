@@ -12,6 +12,7 @@ from google.cloud.logging.handlers import CloudLoggingHandler, setup_logging
 class Config:
     MAILGUN_API_SENDING_KEY: Optional[str] = None
     MAILGUN_HOST: str = "api.mailgun.net"
+    MAILGUN_DOMAIN: str = "mg.stockfair.net"
 
     secret_manager = secretmanager.SecretManagerServiceClient()
 
