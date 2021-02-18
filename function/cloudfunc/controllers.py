@@ -7,12 +7,7 @@ from typing import Dict
 import requests
 from cloudfunc.config import Config
 from cloudfunc.exceptions import ApiResponseError, PayloadError
-from cloudfunc.models import (
-    ApiResponse,
-    ControllerResponse,
-    MailMessage,
-    TransactionRecord,
-)
+from cloudfunc.models import ApiResponse, ControllerResponse, MailMessage
 from cloudfunc.utils import TransactionUtil
 from google.cloud.functions.context import Context
 
@@ -23,6 +18,7 @@ class Controller:
     """
 
     _config = Config()
+    _tu = TransactionUtil()
 
     def send(self, event: Dict, context: Context) -> ControllerResponse:
         """Send an email contained in within the encoded Pub/Sub message}.
@@ -51,30 +47,31 @@ class Controller:
             raise error
 
     def _send_message(self, message: MailMessage, context: Context) -> ApiResponse:
-        tu = TransactionUtil().start()
-        transaction: TransactionRecord = tu.create_entity(
+
+        transaction_log = self._tu.create_entity(
             "EmailTransactionLog", context.event_id
         )
-        logging.info(f"transaction log: {transaction}")
-        transaction.try_count += 1
-        if transaction.completed_at:
+        print(transaction_log)
+        logging.info(f"transaction log: {transaction_log}")
+        transaction_log.try_count += 1
+        if transaction_log.completed_at:
             # If `completed_at` is set, this message has been delivered
             return ApiResponse(
                 response_code=429,
                 message=f"Message ID {context.event_id} previously completed",
             )
 
-        if transaction.try_count > 3:
+        if transaction_log.try_count > 3:
             # Mark as "done", so that we do not try amd process again
-            transaction.completed_at = datetime.now()
+            transaction_log.completed_at = datetime.now()
 
         result = self._send_to_api(message)
 
         if result.response_code == 200:
-            transaction.completed_at = datetime.now()
+            transaction_log.completed_at = datetime.now()
 
         # Update the datastore
-        tu.commit(transaction)
+        self._tu.commit(transaction_log)
 
         return result
 

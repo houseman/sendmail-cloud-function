@@ -34,13 +34,13 @@ def test_start(mocker, mock_transaction):
     from google.cloud import datastore
 
     mocker.patch.object(datastore, "Client")
-    mocker.patch.object(
+    mock_call = mocker.patch.object(
         TransactionUtil._client, "transaction", return_value=mock_transaction
     )
 
-    output = TransactionUtil().start()
+    TransactionUtil()._start()
 
-    assert isinstance(output, TransactionUtil)
+    mock_call.assert_called()
 
 
 def test_commit(mocker, mock_entity, mock_transaction):

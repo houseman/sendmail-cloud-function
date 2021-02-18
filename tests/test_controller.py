@@ -31,8 +31,17 @@ def test_get_message_from_payload(mock_event, mock_message_object):
 @pytest.mark.parametrize(
     "transaction_record, api_response",
     [
-        (TransactionRecord(try_count=3), ApiResponse(response_code=200, message="OK")),
-        (TransactionRecord(try_count=0), ApiResponse(response_code=200, message="OK")),
+        (
+            TransactionRecord(try_count=3),
+            ApiResponse(
+                response_code=429,
+                message="Message ID 617187464135194 previously completed",
+            ),
+        ),
+        (
+            TransactionRecord(try_count=0, completed_at=None),
+            ApiResponse(response_code=200, message="OK"),
+        ),
         (
             TransactionRecord(try_count=1, completed_at=datetime.now()),
             ApiResponse(
@@ -46,15 +55,12 @@ def test_send_message(
     mocker, transaction_record, api_response, mock_message_object, mock_context
 ):
     from cloudfunc.controllers import Controller
-    from cloudfunc.utils import TransactionUtil
-
-    mock_tu = mocker.Mock()
-    mock_tu.create_entity.return_value = transaction_record
-
-    mocker.patch.object(mock_tu, "commit")
-    mocker.patch.object(TransactionUtil, "start", return_value=mock_tu)
 
     controller = Controller()
+    mocker.patch.object(
+        controller._tu, "create_entity", return_value=transaction_record
+    )
+    mocker.patch.object(controller._tu, "commit")
 
     mocker.patch.object(controller, "_send_to_api", return_value=api_response)
 

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Optional
+from typing import Dict, Optional
 
 
 @dataclass
@@ -18,6 +18,9 @@ class MailMessage:
 class TransactionRecord:
     try_count: int = 0
     completed_at: Optional[datetime] = None
+
+    def to_dict(self) -> Dict:
+        return asdict(self)
 
 
 @dataclass

@@ -12,27 +12,16 @@ from google.cloud.datastore.transaction import Transaction
 
 class TransactionUtil:
     _client = datastore.Client()
-
-    _transaction: Transaction
     _entity: Entity
+    _transaction: Transaction
 
-    def start(self) -> TransactionUtil:
-        """
-        Create a Google Cloud Datastore `Transaction`
-        """
-        logging.info("Begin transaction")
-        self._transaction = self._client.transaction()
-        self._transaction.begin()
-
-        return self
-
-    def commit(self, transaction: TransactionRecord) -> None:
+    def commit(self, transaction_log: TransactionRecord) -> None:
         """
         Commit the current tranaction to the datastore, using state from the given
         `TransactionRecord` instance.
         """
-        logging.info(f"Commit transaction: {transaction.__dict__}")
-        self._entity.update(transaction.__dict__)
+        logging.info(f"Commit transaction: {transaction_log}")
+        self._entity.update(transaction_log.to_dict())
         self._client.put(self._entity)
         self._transaction.commit()
 
@@ -41,6 +30,7 @@ class TransactionUtil:
         Create or retrieve a datastore entity and set values into
         a model `TransactionRecord` instance that will hold state.
         """
+        self._transaction = self._start()
 
         key: Key = self._client.key(kind, key_id)
 
@@ -51,6 +41,16 @@ class TransactionUtil:
             self._entity = Entity(key)
 
         return TransactionRecord(
-            try_count=self._entity.get("try_count") or 0,
-            completed_at=self._entity.get("completed_at"),
+            try_count=self._entity.get("try_count", 0),
+            completed_at=self._entity.get("completed_at", None),
         )
+
+    def _start(self) -> Transaction:
+        """
+        Create a Google Cloud Datastore `Transaction`
+        """
+        logging.info("Begin transaction")
+        _transaction = self._client.transaction()
+        _transaction.begin()
+
+        return _transaction
