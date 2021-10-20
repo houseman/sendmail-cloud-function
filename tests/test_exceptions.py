@@ -2,7 +2,7 @@ import pytest
 
 
 def test_mail_server_response_error():
-    from cloudfunc.exceptions import ApiResponseError
+    from function.cloudfunc.exceptions import ApiResponseError
 
     error = ApiResponseError(status_code=400, message="Test")
 
@@ -13,10 +13,11 @@ def test_mail_server_response_error():
 
 def test_api_response_error(mocker, mock_message_object):
     import requests
-    from cloudfunc.controllers import Controller
-    from cloudfunc.exceptions import ApiResponseError
+
+    from function.cloudfunc.controllers import Controller
+    from function.cloudfunc.exceptions import ApiResponseError
 
     controller = Controller()
     mocker.patch.object(requests, "post", side_effect=Exception("mocked error"))
     with pytest.raises(ApiResponseError):
-        controller._send_to_api(mock_message_object)
+        controller._send_message(mock_message_object)

@@ -1,12 +1,12 @@
-from datetime import datetime
-
 import pytest
-from cloudfunc.models import ApiResponse, TransactionRecord
+
+from function.cloudfunc.models import ApiResponse
 
 
 def test_send_to_api(mocker, mock_message_object):
     import requests
-    from cloudfunc.controllers import Controller
+
+    from function.cloudfunc.controllers import Controller
 
     request_result = mocker.Mock()
     request_result.status_code = 200
@@ -15,13 +15,13 @@ def test_send_to_api(mocker, mock_message_object):
     mocker.patch.object(requests, "post", return_value=request_result)
 
     controller = Controller()
-    output = controller._send_to_api(mock_message_object)
+    output = controller._send_message(mock_message_object)
 
     assert output.response_code == 200
 
 
 def test_get_message_from_payload(mock_event, mock_message_object):
-    from cloudfunc.controllers import Controller
+    from function.cloudfunc.controllers import Controller
 
     controller = Controller()
     output = controller._get_message_from_payload(mock_event)
@@ -29,21 +29,16 @@ def test_get_message_from_payload(mock_event, mock_message_object):
 
 
 @pytest.mark.parametrize(
-    "transaction_record, api_response",
+    "api_response",
     [
         (
-            TransactionRecord(try_count=3),
             ApiResponse(
                 response_code=429,
                 message="Message ID 617187464135194 previously completed",
             ),
         ),
+        (ApiResponse(response_code=200, message="OK"),),
         (
-            TransactionRecord(try_count=0, completed_at=None),
-            ApiResponse(response_code=200, message="OK"),
-        ),
-        (
-            TransactionRecord(try_count=1, completed_at=datetime.now()),
             ApiResponse(
                 response_code=429,
                 message="Message ID 617187464135194 previously completed",
@@ -51,18 +46,12 @@ def test_get_message_from_payload(mock_event, mock_message_object):
         ),
     ],
 )
-def test_send_message(
-    mocker, transaction_record, api_response, mock_message_object, mock_context
-):
-    from cloudfunc.controllers import Controller
+def test_send_message(mocker, api_response, mock_message_object, mock_context):
+    from function.cloudfunc.controllers import Controller
 
     controller = Controller()
-    mocker.patch.object(
-        controller._tu, "create_entity", return_value=transaction_record
-    )
-    mocker.patch.object(controller._tu, "commit")
 
-    mocker.patch.object(controller, "_send_to_api", return_value=api_response)
+    mocker.patch.object(controller, "_send_message", return_value=api_response)
 
     output = controller._send_message(mock_message_object, mock_context)
 
@@ -70,8 +59,8 @@ def test_send_message(
 
 
 def test_send(mocker, mock_event, mock_context):
-    from cloudfunc.controllers import Controller
-    from cloudfunc.models import ApiResponse, ControllerResponse
+    from function.cloudfunc.controllers import Controller
+    from function.cloudfunc.models import ApiResponse, ControllerResponse
 
     controller = Controller()
 
@@ -84,8 +73,8 @@ def test_send(mocker, mock_event, mock_context):
 
 
 def test_attribute_exception():
-    from cloudfunc.controllers import Controller
-    from cloudfunc.exceptions import PayloadError
+    from function.cloudfunc.controllers import Controller
+    from function.cloudfunc.exceptions import PayloadError
 
     controller = Controller()
 
@@ -94,7 +83,7 @@ def test_attribute_exception():
 
 
 def test_bad_send(mock_context):
-    from cloudfunc.controllers import Controller
+    from function.cloudfunc.controllers import Controller
 
     controller = Controller()
 

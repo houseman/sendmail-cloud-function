@@ -1,3 +1,44 @@
+A simple Google Cloud Function, triggered ny a PubSub topic, that will send an email via teh MailGun service.
+
+# Developer setup
+
+## Clone this repository
+```
+❯ git clone git@github.com:houseman/sendmail-cloud-function.git
+❯ cd sendmail-cloud-function
+```
+
+## Create a Python virtual environment
+I recommend using [`pyenv-virtualenv`](https://github.com/pyenv/pyenv-virtualenv)
+```
+❯ pyenv virtualenv 3.8.9 sendmail-cloud-function
+❯ pyenv local sendmail-cloud-function
+❯ pip install --upgrade pip
+```
+or just
+```
+❯ python3 -m venv venv
+❯ source ./venv/bin/activate.
+```
+
+## Install the package and dev requirements
+```
+❯ pip install -e .
+❯ pip install -e ".[dev]"
+```
+
+## Install `pre-commit`
+```
+❯ pre-commit install
+pre-commit installed at .git/hooks/pre-commit
+```
+
+## Run tests
+```
+❯ ./scripts/test.sh
+```
+
+## Google Cloud setup
 # Create a pub/sub topic
 
 https://cloud.google.com/pubsub/docs/quickstart-cli#create_a_subscription
