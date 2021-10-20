@@ -1,7 +1,7 @@
 import base64
 import json
 from logging import Logger
-from typing import Dict
+from typing import Dict, Optional
 
 import requests
 from google.cloud.functions.context import Context
@@ -18,7 +18,9 @@ class Controller:
 
     _config = Config()
 
-    def __init__(self, logger: Logger) -> None:
+    def __init__(self, logger: Optional[Logger] = None) -> None:
+        if not logger:
+            logger = Config.create_logger()
         self.logger = logger
 
     def send(self, event: Dict, context: Context) -> ControllerResponse:
@@ -47,10 +49,13 @@ class Controller:
         """Send a `MailMessage` object data to the *Mailgun* endpoint."""
 
         try:
+            host = self._config.get_val("MAILGUN_HOST")
+            domain = self._config.get_val("MAILGUN_DOMAIN")
+            api_key = self._config.get_val("MAILGUN_API_SENDING_KEY")
+
             response = requests.post(
-                f"https://{self._config.MAILGUN_HOST}/v3/"
-                f"{self._config.MAILGUN_DOMAIN}/messages",
-                auth=("api", self._config.MAILGUN_API_SENDING_KEY),
+                f"https://{host}/v3/{domain}/messages",
+                auth=("api", api_key),
                 data={
                     "from": message.sender,
                     "to": [message.recipient],
@@ -59,7 +64,7 @@ class Controller:
                     "text": message.text_content,
                 },
             )
-            self.logger.info(f"Server {self._config.MAILGUN_HOST} replied: {response}")
+            self.logger.info(f"Server {host} replied: {response}")
 
             # If no error was raised, map response to a `ApiResponse` object and return
             return ApiResponse(

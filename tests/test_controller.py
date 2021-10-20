@@ -3,7 +3,7 @@ import pytest
 from function.cloudfunc.models import ApiResponse
 
 
-def test_send_to_api(mocker, mock_message_object):
+def test_send_to_api(mocker, mock_message_object, mock_context):
     import requests
 
     from function.cloudfunc.controllers import Controller
@@ -15,7 +15,7 @@ def test_send_to_api(mocker, mock_message_object):
     mocker.patch.object(requests, "post", return_value=request_result)
 
     controller = Controller()
-    output = controller._send_message(mock_message_object)
+    output = controller._send_message(mock_message_object, mock_context)
 
     assert output.response_code == 200
 

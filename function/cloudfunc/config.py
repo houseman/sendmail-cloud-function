@@ -1,20 +1,16 @@
 import logging
 from logging import Logger
-from typing import Dict
+from typing import Any, Optional
 
-from dotenv import dotenv_values
+import dotenv
 
 
 class Config:
-    _envars: Dict = {}
-    MAILGUN_HOST: str = ""
-    MAILGUN_DOMAIN: str = ""
-    MAILGUN_API_SENDING_KEY: str = ""
-
     def __init__(self) -> None:
-        envars = dotenv_values()
+        self._values_ = dotenv.dotenv_values()
 
-        self._envars = dict(**envars)
+    def get_val(self, key: str, default: Optional[Any] = None) -> Optional[Any]:
+        return self._values_.get(key, default)
 
     @staticmethod
     def create_logger() -> Logger:

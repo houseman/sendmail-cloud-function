@@ -4,10 +4,10 @@ from function.cloudfunc.models import ControllerResponse
 
 
 @pytest.mark.parametrize(
-    ["response", "expected"],
+    "response, expected",
     [
         (ControllerResponse(message="OK", response_code=200), ("OK", 200)),
-        (ControllerResponse(message="ERROR", response_code=500), ("ERROR", 500)),
+        (ControllerResponse(message="ERROR", response_code=500), ("OK", 200)),
     ],
 )
 def test_cloud_send_mail(mocker, response, expected, mock_event, mock_context):
