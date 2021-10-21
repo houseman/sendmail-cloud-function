@@ -1,31 +1,33 @@
 import pytest
 
-from function.cloudfunc.models import ControllerResponse
+from function.responses import ControllerResponse
 
 
 @pytest.mark.parametrize(
-    "response, expected",
+    "controller_response, expected",
     [
         (ControllerResponse(message="OK", response_code=200), ("OK", 200)),
-        (ControllerResponse(message="ERROR", response_code=500), ("OK", 200)),
+        (
+            ControllerResponse(message="Forbidden", response_code=401),
+            ("Forbidden", 401),
+        ),
     ],
 )
-def test_cloud_send_mail(mocker, response, expected, mock_event, mock_context):
-    from function.cloudfunc import config as ConfigModule
-    from function.cloudfunc import controllers as ControllersModule
+def test_cloud_send_mail(
+    mocker, controller_response, expected, mock_event, mock_context
+):
+    from function import controllers as ControllersModule
 
-    # Mock the `Controller` class
+    mocker.patch.object(ControllersModule, "SendController")
+
+    # Mock the `SendController` class
     mock_controller = mocker.Mock()
-    mock_controller.send.return_value = response
-    mocker.patch.object(ControllersModule, "Controller", return_value=mock_controller)
+    mock_controller.send.return_value = controller_response
 
-    # Mock the `Config` class
-    mock_logger = mocker.Mock()
-    mock_config = mocker.Mock()
-    mock_config.create_logger.return_value = mock_logger
-    mocker.patch.object(ConfigModule, "Config", return_value=mock_config)
-
+    from function import main
     from function.main import cloud_send_mail
+
+    main.controller = mock_controller
 
     output = cloud_send_mail(mock_event, mock_context)
 

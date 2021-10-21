@@ -2,13 +2,21 @@ from typing import Dict, Tuple
 
 from google.cloud.functions.context import Context
 
-from function.cloudfunc.config import Config
-from function.cloudfunc.controllers import Controller
+from function.config import Config
+from function.controllers import SendController
+
+logger = Config.create_logger()
+controller = SendController(logger)
 
 
 def cloud_send_mail(event: Dict, context: Context) -> Tuple[str, int]:
-    """Entrypoint: A background Google Cloud Function to be triggered by a Pub/Sub
+    """A background _Google Cloud Function_ to be triggered by a Pub/Sub
     message.
+    **Entrypoint:** Use the `--entry-point` flag to specify this function name when
+    deploying to GCP.
+    **Note:** _Cloud Functions_ looks for deployable functions in `main.py` by
+    default. Use the `--source` flag when deploying your function via gcloud to specify
+    a different directory containing a `main.py` file.
 
     ### Args:
     - `event`: Dict contains event data;
@@ -20,10 +28,18 @@ def cloud_send_mail(event: Dict, context: Context) -> Tuple[str, int]:
 
     ### Returns:
     A Tuple of (message: str, response_code: int)
+
+    ### Raises:
+    - `Retry`: An exception that indicates retry should be attempted.
+
+    By default, if a function invocation terminates with an error, the function will
+    *not* be invoked again, and the event will be dropped. When you enable retries on
+    an event-driven function, Cloud Functions will retry a failed function invocation
+    until it completes successfully, or the retry window (by default, 7 days) expires.
     """
-    logger = Config.create_logger()
-    controller = Controller(logger)
+
     logger.info(f"{__name__} triggered with event_id {context.event_id}")
-    response = controller.send(event, context)
+    response = controller.send(event)
     logger.info(f"Event {context.event_id} result: {response}")
+
     return (response.message, response.response_code)

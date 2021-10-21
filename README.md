@@ -1,5 +1,8 @@
 A simple Google Cloud Function, triggered ny a PubSub topic, that will send an email via teh MailGun service.
 
+# Resources
+- [Google Cloud Pub/Sub Triggers](https://cloud.google.com/functions/docs/calling/pubsub)
+
 # Developer setup
 
 ## Clone this repository
@@ -38,23 +41,26 @@ pre-commit installed at .git/hooks/pre-commit
 ❯ ./scripts/test.sh
 ```
 
-## Google Cloud setup
-# Create a pub/sub topic
+# Google Cloud setup
+## Create a pub/sub topic
 
-https://cloud.google.com/pubsub/docs/quickstart-cli#create_a_subscription
+See the [quickstart guide](https://cloud.google.com/pubsub/docs/quickstart-cli#create_a_topic)
 
+> **Note:** You will have to set up a GCP project, enable the Pub/Sub API etc. See [here](https://cloud.google.com/pubsub/docs/quickstart-cli#before-you-begin)
+
+Once GCP is configured, create a topic named `function-send-email`:
 ```
-$ gcloud pubsub topics create function-send-email
+❯ gcloud pubsub topics create function-send-email
 Created topic [projects/thirsty-sailor-290220/topics/function-send-email].
 ```
 
-# Deploying the function
+## Deploying the function
 
-https://cloud.google.com/functions/docs/deploying/filesystem#deploy_using_the_gcloud_tool
+See the [guide](https://cloud.google.com/functions/docs/deploying/filesystem#deploy_using_the_gcloud_tool)
 
-
-    $ cd function
+```
     $ gcloud functions deploy cloud_send_mail \
+    --source function
     --entry-point cloud_send_mail \
     --runtime python38 \
     --trigger-topic function-send-email \
@@ -83,7 +89,7 @@ https://cloud.google.com/functions/docs/deploying/filesystem#deploy_using_the_gc
     timeout: 60s
     updateTime: '2021-02-03T16:15:12.655Z'
     versionId: '1'
-
+```
 
 # To view logs
 

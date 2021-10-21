@@ -3,15 +3,14 @@ import json
 from logging import Logger
 from typing import Dict, Optional
 
-import requests
-from google.cloud.functions.context import Context
+from function.config import Config
+from function.exceptions import ApiError, ControllerError, PayloadError
+from function.integrations import Mailgun
+from function.responses import ControllerResponse
+from function.schemas import MailMessage
 
-from function.cloudfunc.config import Config
-from function.cloudfunc.exceptions import ApiResponseError, PayloadError
-from function.cloudfunc.models import ApiResponse, ControllerResponse, MailMessage
 
-
-class Controller:
+class SendController:
     """Controller class that contains logic for sending an Email contained within
     the encoded Pub/Sub message.
     """
@@ -22,57 +21,35 @@ class Controller:
         if not logger:
             logger = Config.create_logger()
         self.logger = logger
+        self._integration = Mailgun()
 
-    def send(self, event: Dict, context: Context) -> ControllerResponse:
+    def send(self, event: Dict) -> ControllerResponse:
         """Send an email contained within the encoded Pub/Sub message}.
 
         ### Args:
         - event: Dict contains event data;
-        - context: Context Event metadata (if any).
 
         ### Returns:
         - ControllerResponse
+
+        ### Raises:
+        - ControllerError
         """
         try:
             message = self._get_message_from_payload(event)
-            result = self._send_message(message, context)
+            result = self._integration.send(message)
             self.logger.info(f"{result}")
 
             return ControllerResponse(
                 message=result.message, response_code=result.response_code
             )
-        except Exception as error:
+        except PayloadError:
+            # Swallow this exception, as we do not want to retry badly-formatted
+            # messages
+            return ControllerResponse(message="Bad Request", response_code=400)
+        except ApiError as error:
             self.logger.error(f"{error}")
-            raise error
-
-    def _send_message(self, message: MailMessage, context: Context) -> ApiResponse:
-        """Send a `MailMessage` object data to the *Mailgun* endpoint."""
-
-        try:
-            host = self._config.get_val("MAILGUN_HOST")
-            domain = self._config.get_val("MAILGUN_DOMAIN")
-            api_key = self._config.get_val("MAILGUN_API_SENDING_KEY")
-
-            response = requests.post(
-                f"https://{host}/v3/{domain}/messages",
-                auth=("api", api_key),
-                data={
-                    "from": message.sender,
-                    "to": [message.recipient],
-                    "subject": message.subject,
-                    "html": message.html_content,
-                    "text": message.text_content,
-                },
-            )
-            self.logger.info(f"Server {host} replied: {response}")
-
-            # If no error was raised, map response to a `ApiResponse` object and return
-            return ApiResponse(
-                response_code=response.status_code, message=response.text
-            )
-        except Exception as error:
-            self.logger.error(f"{error}")
-            raise ApiResponseError(status_code=500, message=f"{error}")
+            raise ControllerError(message=error.message, status_code=error.status_code)
 
     def _get_message_from_payload(self, event: Dict) -> MailMessage:
         """Return a `MailMessage` object, populated with data from the Pub/Sub message

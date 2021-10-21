@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from function.cloudfunc.models import MailMessage
+from function.schemas import MailMessage
 
 
 @pytest.fixture()
@@ -50,3 +50,12 @@ def mock_message_object(mocker):
         html_content="<h1>Test Message</h1><p>Test HTML message</p>",
         text_content="Test plain text",
     )
+
+
+@pytest.fixture
+def mock_ok_response(mocker):
+    mock_response = mocker.Mock()
+    mock_response.status_code = 200
+    mock_response.text = "OK"
+
+    return mock_response

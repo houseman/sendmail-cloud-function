@@ -7,7 +7,7 @@ def test_constructor(mocker):
     values = dotenv.dotenv_values()
     print(f"values : {values}")
 
-    from function.cloudfunc.config import Config
+    from function.config import Config
 
     config = Config()
     print(f"_values_  : {config._values_}")

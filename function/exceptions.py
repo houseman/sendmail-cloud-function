@@ -14,9 +14,13 @@ class BaseError(Exception):
         return f"[{self.status_code}] {self.message}"
 
 
-class ApiResponseError(BaseError):
+class ApiError(BaseError):
     pass
 
 
 class PayloadError(BaseError):
+    pass
+
+
+class ControllerError(BaseError):
     pass

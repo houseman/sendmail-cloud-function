@@ -1,91 +1,66 @@
 import pytest
 
-from function.cloudfunc.models import ApiResponse
+from function.exceptions import ApiError, ControllerError
+from function.responses import ApiResponse, ControllerResponse
 
 
-def test_send_to_api(mocker, mock_message_object, mock_context):
-    import requests
-
-    from function.cloudfunc.controllers import Controller
-
-    request_result = mocker.Mock()
-    request_result.status_code = 200
-    request_result.text = "OK"
-
-    mocker.patch.object(requests, "post", return_value=request_result)
-
-    controller = Controller()
-    output = controller._send_message(mock_message_object, mock_context)
-
-    assert output.response_code == 200
-
-
-def test_get_message_from_payload(mock_event, mock_message_object):
-    from function.cloudfunc.controllers import Controller
-
-    controller = Controller()
-    output = controller._get_message_from_payload(mock_event)
-    assert output == mock_message_object
-
-
-@pytest.mark.parametrize(
-    "api_response",
-    [
-        (
-            ApiResponse(
-                response_code=429,
-                message="Message ID 617187464135194 previously completed",
-            ),
-        ),
-        (ApiResponse(response_code=200, message="OK"),),
-        (
-            ApiResponse(
-                response_code=429,
-                message="Message ID 617187464135194 previously completed",
-            ),
-        ),
-    ],
-)
-def test_send_message(mocker, api_response, mock_message_object, mock_context):
-    from function.cloudfunc.controllers import Controller
-
-    controller = Controller()
-
-    mocker.patch.object(controller, "_send_message", return_value=api_response)
-
-    output = controller._send_message(mock_message_object, mock_context)
-
-    assert output == api_response
-
-
-def test_send(mocker, mock_event, mock_context):
-    from function.cloudfunc.controllers import Controller
-    from function.cloudfunc.models import ApiResponse, ControllerResponse
-
-    controller = Controller()
+def test_send_success(mocker, mock_event):
+    from function import integrations as IntegrationsModule
 
     api_response = ApiResponse(message="OK", response_code=200)
+    controller_response = ControllerResponse(message="OK", response_code=200)
 
-    mocker.patch.object(controller, "_send_message", return_value=api_response)
-    output = controller.send(mock_event, mock_context)
+    # Patch API connection
+    mocker.patch.object(IntegrationsModule, "Mailgun")
 
-    assert output == ControllerResponse(message="OK", response_code=200)
+    mock_integration = mocker.Mock()
+    mock_integration.send.return_value = api_response
+
+    from function.controllers import SendController
+
+    controller = SendController()
+    controller._integration = mock_integration
+    output = controller.send(mock_event)
+
+    assert output == controller_response
+
+
+def test_send_error(mocker, mock_event):
+    from function import integrations as IntegrationsModule
+
+    api_response = ApiError(message="Forbidden", status_code=401)
+
+    # Patch API connection
+    mocker.patch.object(IntegrationsModule, "Mailgun")
+
+    mock_integration = mocker.Mock()
+    mock_integration.send.side_effect = api_response
+
+    from function.controllers import SendController
+
+    controller = SendController()
+    controller._integration = mock_integration
+
+    with pytest.raises(ControllerError):
+        controller.send(mock_event)
 
 
 def test_attribute_exception():
-    from function.cloudfunc.controllers import Controller
-    from function.cloudfunc.exceptions import PayloadError
+    from function.controllers import SendController
+    from function.exceptions import PayloadError
 
-    controller = Controller()
+    controller = SendController()
 
     with pytest.raises(PayloadError):
         controller._get_message_from_payload({})
 
 
-def test_bad_send(mock_context):
-    from function.cloudfunc.controllers import Controller
+def test_bad_message():
+    from function.controllers import SendController
 
-    controller = Controller()
+    controller = SendController()
 
-    with pytest.raises(Exception):
-        controller.send({"data": ""}, mock_context)
+    # Badly-formatted messages should not raise an exception as this will cause these to
+    # be re-tried, which is not desireable.
+    result = controller.send({"data": ""})
+    assert result == ControllerResponse(message="Bad Request", response_code=400)
