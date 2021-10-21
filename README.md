@@ -7,7 +7,7 @@ A simple Google Cloud Function, triggered ny a PubSub topic, that will send an e
 
 ## Clone this repository
 ```
-❯ git clone git@github.com:houseman/sendmail-cloud-function.git
+❯ git clone git@github.com:houseman/sendmail-cloud-git
 ❯ cd sendmail-cloud-function
 ```
 
@@ -41,7 +41,15 @@ pre-commit installed at .git/hooks/pre-commit
 ❯ ./scripts/test.sh
 ```
 
-# Google Cloud setup
+# Google Cloud Platform (GCP) setup
+- Login to GCP Console
+- Create a new project (or select an existing one, it makes no difference)
+- Your project will have to be linked to a billing account
+- You will need the following GCP services enabled for your project
+  - Cloud Functions  (Possibly [free](https://cloud.google.com/free/docs/gcp-free-tier/#cloud-functions))
+  - Cloud Build (Possibly [free](https://cloud.google.com/free/docs/gcp-free-tier/#cloud-build))
+  - Pub/Sub (Possibly [free](https://cloud.google.com/free/docs/gcp-free-tier/#pub-sub))
+
 ## Create a pub/sub topic
 
 See the [quickstart guide](https://cloud.google.com/pubsub/docs/quickstart-cli#create_a_topic)
@@ -59,36 +67,14 @@ Created topic [projects/thirsty-sailor-290220/topics/function-send-email].
 See the [guide](https://cloud.google.com/functions/docs/deploying/filesystem#deploy_using_the_gcloud_tool)
 
 ```
-    $ gcloud functions deploy cloud_send_mail \
-    --source function
-    --entry-point cloud_send_mail \
-    --runtime python38 \
-    --trigger-topic function-send-email \
-    --retry
+❯ gcloud functions deploy cloud_send_mail \
+--source function \
+--entry-point cloud_send_mail \
+--runtime python38 \
+--trigger-topic function-send-email \
+--retry
 
-    Deploying function (may take a while - up to 2 minutes)...⠛
-    For Cloud Build Stackdriver Logs, visit: https://console.cloud.google.com/logs/viewer?project...
-    Deploying function (may take a while - up to 2 minutes)...done.
-    availableMemoryMb: 256
-    buildId: d82ec16f-3a10-4482-bf63-dc0d5c67ee7d
-    entryPoint: cloud_send_mail
-    eventTrigger:
-    eventType: google.pubsub.topic.publish
-    failurePolicy:
-        retry: {}
-    resource: projects/thirsty-sailor-290220/topics/function-send-email
-    service: pubsub.googleapis.com
-    ingressSettings: ALLOW_ALL
-    labels:
-    deployment-tool: cli-gcloud
-    name: projects/thirsty-sailor-290220/locations/us-central1/functions/cloud_send_mail
-    runtime: python38
-    serviceAccountEmail: thirsty-sailor-290220@appspot.gserviceaccount.com
-    sourceUploadUrl: https://storage.googleapis.com/gcf-upload-...
-    status: ACTIVE
-    timeout: 60s
-    updateTime: '2021-02-03T16:15:12.655Z'
-    versionId: '1'
+Deploying function (may take a while - up to 2 minutes)...
 ```
 
 # To view logs
