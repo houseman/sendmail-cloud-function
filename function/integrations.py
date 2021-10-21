@@ -1,9 +1,12 @@
-import requests
+import logging
 
-from function.config import Config
-from function.exceptions import ApiError
-from function.responses import ApiResponse
-from function.schemas import MailMessage
+import requests
+from config import Config
+from exceptions import ApiError
+from responses import ApiResponse
+from schemas import MailMessage
+
+logger = logging.getLogger(__name__)
 
 
 class Mailgun:
@@ -13,9 +16,9 @@ class Mailgun:
 
     def __init__(self) -> None:
         self._session = requests.Session()
-        self.logger = self._config.create_logger()
         self.host = self._config.get_val("MAILGUN_HOST")
         self.domain = self._config.get_val("MAILGUN_DOMAIN")
+        logger.info(f"API host: {self.host}")
         self.api_key = self._config.get_val("MAILGUN_API_SENDING_KEY")
 
     def send(self, message: MailMessage) -> ApiResponse:
@@ -42,12 +45,12 @@ class Mailgun:
                     "text": message.text_content,
                 },
             )
-            self.logger.info(f"Server {self.host} replied: {response}")
+            logger.info(f"Server {self.host} replied: {response}")
 
             # If no error was raised, map response to a `ApiResponse` object and return
             return ApiResponse(
                 response_code=response.status_code, message=response.text
             )
         except Exception as error:
-            self.logger.error(f"{error}")
+            logger.error(f"{error}")
             raise ApiError(status_code=500, message=f"{error}")

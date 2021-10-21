@@ -50,6 +50,14 @@ pre-commit installed at .git/hooks/pre-commit
   - Cloud Build (Possibly [free](https://cloud.google.com/free/docs/gcp-free-tier/#cloud-build))
   - Pub/Sub (Possibly [free](https://cloud.google.com/free/docs/gcp-free-tier/#pub-sub))
 
+## Configuration
+Create a file named `.env` in the `function` directory, and store credentials
+
+```
+MAILGUN_HOST=api.eu.mailgun.net
+MAILGUN_DOMAIN=mg.example.net
+MAILGUN_API_SENDING_KEY=4g0801ef-c9d487d3
+```
 ## Create a pub/sub topic
 
 See the [quickstart guide](https://cloud.google.com/pubsub/docs/quickstart-cli#create_a_topic)
@@ -84,8 +92,11 @@ Deploying function (may take a while - up to 2 minutes)...
 
 
 # Triggering the function
+```
+gcloud pubsub topics publish function-send-email --message \
+'{"rcpt": "scott.houseman@gmail.com", "sender": "noreply@stockfair.net","subject": "Test message","html_content": "<h1>Test</h1>","text_content": "TEST"}'
 
-    gcloud pubsub topics publish function-send-email --message YOUR_NAME
+```
 
 # Installing the emulator
 

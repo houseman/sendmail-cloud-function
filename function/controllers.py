@@ -1,13 +1,15 @@
 import base64
 import json
-from logging import Logger
-from typing import Dict, Optional
+import logging
+from typing import Dict
 
-from function.config import Config
-from function.exceptions import ApiError, ControllerError, PayloadError
-from function.integrations import Mailgun
-from function.responses import ControllerResponse
-from function.schemas import MailMessage
+from config import Config
+from exceptions import ApiError, ControllerError, PayloadError
+from integrations import Mailgun
+from responses import ControllerResponse
+from schemas import MailMessage
+
+logger = logging.getLogger(__name__)
 
 
 class SendController:
@@ -17,10 +19,7 @@ class SendController:
 
     _config = Config()
 
-    def __init__(self, logger: Optional[Logger] = None) -> None:
-        if not logger:
-            logger = Config.create_logger()
-        self.logger = logger
+    def __init__(self) -> None:
         self._integration = Mailgun()
 
     def send(self, event: Dict) -> ControllerResponse:
@@ -38,7 +37,7 @@ class SendController:
         try:
             message = self._get_message_from_payload(event)
             result = self._integration.send(message)
-            self.logger.info(f"{result}")
+            logger.info(f"{result}")
 
             return ControllerResponse(
                 message=result.message, response_code=result.response_code
@@ -48,7 +47,7 @@ class SendController:
             # messages
             return ControllerResponse(message="Bad Request", response_code=400)
         except ApiError as error:
-            self.logger.error(f"{error}")
+            logger.error(f"{error}")
             raise ControllerError(message=error.message, status_code=error.status_code)
 
     def _get_message_from_payload(self, event: Dict) -> MailMessage:
@@ -69,5 +68,5 @@ class SendController:
             # If a message could not be decoded from the payload, return (400)
 
             error_message = f"Message payload could not be decoded: {error}"
-            self.logger.error(error_message)
+            logger.error(error_message)
             raise PayloadError(message=error_message, status_code=400)

@@ -3,11 +3,12 @@
 echo -e "Installing test dependencies"
 pip install -r tests/requirements-test.txt -q
 echo -e "Done"
+pip install --quiet --editable .
 echo -e "Run tests"
 
 pytest tests/                   \
 --cov-config .coveragerc        \
---cov=function               \
+--cov=function                  \
 --cov-report html               \
 --cov-report term               \
 --cov-report xml                \

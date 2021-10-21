@@ -1,12 +1,11 @@
+import logging
 from typing import Dict, Tuple
 
+from controllers import SendController
 from google.cloud.functions.context import Context
 
-from function.config import Config
-from function.controllers import SendController
-
-logger = Config.create_logger()
-controller = SendController(logger)
+logger = logging.getLogger(__name__)
+controller = SendController()
 
 
 def cloud_send_mail(event: Dict, context: Context) -> Tuple[str, int]:
