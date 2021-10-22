@@ -9,8 +9,6 @@ from integrations import Mailgun
 from responses import ControllerResponse
 from schemas import MailMessage
 
-logger = logging.getLogger(__name__)
-
 
 class SendController:
     """Controller class that contains logic for sending an Email contained within
@@ -37,7 +35,7 @@ class SendController:
         try:
             message = self._get_message_from_payload(event)
             result = self._integration.send(message)
-            logger.info(f"{result}")
+            logging.info(f"{result}")
 
             return ControllerResponse(
                 message=result.message, response_code=result.response_code
@@ -47,7 +45,7 @@ class SendController:
             # messages
             return ControllerResponse(message="Bad Request", response_code=400)
         except ApiError as error:
-            logger.error(f"{error}")
+            logging.error(f"{error}")
             raise ControllerError(message=error.message, status_code=error.status_code)
 
     def _get_message_from_payload(self, event: Dict) -> MailMessage:
@@ -68,5 +66,5 @@ class SendController:
             # If a message could not be decoded from the payload, return (400)
 
             error_message = f"Message payload could not be decoded: {error}"
-            logger.error(error_message)
+            logging.error(error_message)
             raise PayloadError(message=error_message, status_code=400)

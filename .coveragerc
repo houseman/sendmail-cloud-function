@@ -8,7 +8,7 @@ omit =
 
 [report]
 exclude_lines =
-    logger
+    logging
     # See https://github.com/nedbat/coveragepy/issues/970
     pragma: no cover
     @overload

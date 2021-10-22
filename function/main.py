@@ -1,10 +1,17 @@
 import logging
 from typing import Dict, Tuple
 
+import google.cloud.logging
 from controllers import SendController
 from google.cloud.functions.context import Context
 
-logger = logging.getLogger(__name__)
+client = google.cloud.logging.Client()
+# Retrieves a Cloud Logging handler based on the environment
+# you're running in and integrates the handler with the
+# Python logging module. By default this captures all logs
+# at INFO level and higher
+client.setup_logging()
+
 controller = SendController()
 
 
@@ -37,8 +44,8 @@ def cloud_send_mail(event: Dict, context: Context) -> Tuple[str, int]:
     until it completes successfully, or the retry window (by default, 7 days) expires.
     """
 
-    logger.info(f"{__name__} triggered with event_id {context.event_id}")
+    logging.info(f"{__name__} triggered with event_id {context.event_id}")
     response = controller.send(event)
-    logger.info(f"Event {context.event_id} result: {response}")
+    logging.info(f"Event {context.event_id} result: {response}")
 
     return (response.message, response.response_code)

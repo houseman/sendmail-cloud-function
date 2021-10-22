@@ -6,8 +6,6 @@ from exceptions import ApiError
 from responses import ApiResponse
 from schemas import MailMessage
 
-logger = logging.getLogger(__name__)
-
 
 class Mailgun:
     """Mailgun service integration"""
@@ -16,7 +14,7 @@ class Mailgun:
         self._session = requests.Session()
         self.host = Config.get_env_val("MAILGUN_HOST")
         self.domain = Config.get_env_val("MAILGUN_DOMAIN")
-        logger.info(f"API host: {self.host}")
+        logging.info(f"API host: {self.host}")
         self.api_key = Config.get_env_val("MAILGUN_API_SENDING_KEY")
 
     def send(self, message: MailMessage) -> ApiResponse:
@@ -43,12 +41,12 @@ class Mailgun:
                     "text": message.text_content,
                 },
             )
-            logger.info(f"Server {self.host} replied: {response}")
+            logging.info(f"Server {self.host} replied: {response}")
 
             # If no error was raised, map response to a `ApiResponse` object and return
             return ApiResponse(
                 response_code=response.status_code, message=response.text
             )
         except Exception as error:
-            logger.error(f"{error}")
+            logging.error(f"{error}")
             raise ApiError(status_code=500, message=f"{error}")
