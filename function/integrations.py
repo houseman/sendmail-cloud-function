@@ -12,14 +12,12 @@ logger = logging.getLogger(__name__)
 class Mailgun:
     """Mailgun service integration"""
 
-    _config = Config()
-
     def __init__(self) -> None:
         self._session = requests.Session()
-        self.host = self._config.get_val("MAILGUN_HOST")
-        self.domain = self._config.get_val("MAILGUN_DOMAIN")
+        self.host = Config.get_env_val("MAILGUN_HOST")
+        self.domain = Config.get_env_val("MAILGUN_DOMAIN")
         logger.info(f"API host: {self.host}")
-        self.api_key = self._config.get_val("MAILGUN_API_SENDING_KEY")
+        self.api_key = Config.get_env_val("MAILGUN_API_SENDING_KEY")
 
     def send(self, message: MailMessage) -> ApiResponse:
         """Send a `MailMessage` object data to the *Mailgun* endpoint.

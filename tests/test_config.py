@@ -1,15 +1,15 @@
-def test_constructor(mocker):
-    import dotenv
+import os
 
-    # Patch dotenv
-    mock_env_vars = {"ONE": 1, "TWO": 2, "THREE": 3}
-    mocker.patch.object(dotenv, "dotenv_values", return_value=mock_env_vars)
+
+def test_get_env_val(mocker):
+    # Patch os.environ.get
+    mock_env_vars = {"ONE": "1", "TWO": "2", "THREE": "3"}
+    mocker.patch.dict(os.environ, mock_env_vars, clear=True)
 
     from config import Config
 
-    config = Config()
-
-    assert config.get_val("ONE") == mock_env_vars["ONE"]
-    assert config.get_val("TWO") == 2
-    assert config.get_val("FOUR") is None
-    assert config.get_val("FIVE", 5) == 5
+    assert os.environ["ONE"] == mock_env_vars["ONE"]
+    assert Config.get_env_val("TWO") == mock_env_vars["TWO"]
+    assert Config.get_env_val("THREE") == "3"
+    assert Config.get_env_val("FOUR") is None
+    assert Config.get_env_val("FIVE", "5") == "5"

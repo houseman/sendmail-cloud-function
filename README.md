@@ -66,12 +66,15 @@ This will enable Pylance to resolve import paths.
   - Pub/Sub (Possibly [free](https://cloud.google.com/free/docs/gcp-free-tier/#pub-sub))
 
 ## Configuration
-Create a file named `.env` in the `function` directory, and store credentials
+### Environment variables
+Certain environment variables must be set for configuration of the Mailgun API.
+Cloud Functions allows [various methods](https://cloud.google.com/functions/docs/configuring/env-var#using_runtime_environment_variables) to set environment variable values.
+Create a file named `.env.yaml` in the root directory, and store credentials, for example:
 
-```
-MAILGUN_HOST=api.mailgun.net
-MAILGUN_DOMAIN=mg.example.net
-MAILGUN_API_SENDING_KEY=4g0801ef-c9d487d3
+```yaml
+MAILGUN_HOST: api.mailgun.net
+MAILGUN_DOMAIN: mg.example.net
+MAILGUN_API_SENDING_KEY: 4g0801ef-c9d487d3
 ```
 ## Create a pub/sub topic
 
@@ -95,6 +98,7 @@ See the [guide](https://cloud.google.com/functions/docs/deploying/filesystem#dep
 --entry-point cloud_send_mail \
 --runtime python38 \
 --trigger-topic function-send-email \
+--env-vars-file .env.yaml \
 --retry
 
 Deploying function (may take a while - up to 2 minutes)...
