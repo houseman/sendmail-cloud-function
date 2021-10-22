@@ -17,7 +17,7 @@ def mock_context(mocker):
 @pytest.fixture()
 def mock_message():
     return dict(
-        rcpt="info@example.com",
+        recipient="info@example.com",
         sender="test@example.com",
         subject="Test subject",
         html_content="<h1>Test Message</h1><p>Test HTML message</p>",

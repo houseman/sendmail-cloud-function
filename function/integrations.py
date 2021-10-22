@@ -14,6 +14,7 @@ class Mailgun:
         self._session = requests.Session()
         self.host = Config.get_env_val("MAILGUN_HOST")
         self.domain = Config.get_env_val("MAILGUN_DOMAIN")
+        self.timeout = int(Config.get_env_val("MAILGUN_TIMEOUT", "3"))
         logging.info(f"API host: {self.host}")
         self.api_key = Config.get_env_val("MAILGUN_API_SENDING_KEY")
 
@@ -31,7 +32,7 @@ class Mailgun:
 
         try:
             response = self._session.post(
-                f"https://{self.host}/v3/{self.domain}/messages",
+                url=f"https://{self.host}/v3/{self.domain}/messages",
                 auth=("api", self.api_key),
                 data={
                     "from": message.sender,
@@ -40,13 +41,16 @@ class Mailgun:
                     "html": message.html_content,
                     "text": message.text_content,
                 },
+                timeout=self.timeout,
             )
             logging.info(f"Server {self.host} replied: {response}")
-
+            # Raise an HTTPError if the HTTP request returned an unsuccessful status
+            # code
+            response.raise_for_status()
             # If no error was raised, map response to a `ApiResponse` object and return
             return ApiResponse(
                 response_code=response.status_code, message=response.text
             )
-        except Exception as error:
+        except requests.exceptions.HTTPError as error:
             logging.error(f"{error}")
-            raise ApiError(status_code=500, message=f"{error}")
+            raise ApiError(status_code=error.response.status_code, message=f"{error}")

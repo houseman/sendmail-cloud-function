@@ -56,7 +56,7 @@ class SendController:
         try:
             message = json.loads(base64.b64decode(event["data"]).decode("utf-8"))
             return MailMessage(
-                recipient=message["rcpt"],
+                recipient=message["recipient"],
                 sender=message["sender"],
                 subject=message["subject"],
                 html_content=message["html_content"],

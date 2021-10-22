@@ -17,7 +17,12 @@ def test_api_response_error(mocker, mock_message_object):
     from integrations import Mailgun
 
     mock_session = mocker.Mock()
-    mocker.patch.object(mock_session, "post", side_effect=Exception("mocked error"))
+    mock_response = mocker.Mock()
+    mocker.patch.object(
+        mock_session,
+        "post",
+        side_effect=requests.exceptions.HTTPError(response=mock_response),
+    )
     mocker.patch.object(requests, "Session", return_value=mock_session)
 
     with pytest.raises(ApiError):

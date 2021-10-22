@@ -74,7 +74,40 @@ Create a file named `.env.yaml` in the root directory, and store credentials, fo
 ```yaml
 MAILGUN_HOST: api.mailgun.net
 MAILGUN_DOMAIN: mg.example.net
-MAILGUN_API_SENDING_KEY: 4g0801ef-c9d487d3
+MAILGUN_API_SENDING_KEY: your-mailgun-api-key
+```
+
+### Confirm credentials work
+```
+❯ curl --silent --user 'api:MAILGUN_API_SENDING_KEY' \
+    https://${MAILGUN_HOST}/v3/${MAILGUN_DOMAIN}/messages \
+    --form from='Excited User <mailgun@example.net>' \
+    --form to=me@mail.com \
+    --form subject='Hello' \
+    --form text='Testing some Mailgun awesomeness!'
+
+```
+### Create a Schema
+A schema is a format that messages must follow, creating a contract between publisher and subscriber that Pub/Sub will enforce.
+See Documentation: [Creating and managing schemas ](https://cloud.google.com/pubsub/docs/schemas)
+Create a schema defined in Protocol Buffer format:
+```
+❯ gcloud pubsub schemas create MAIL_MESSAGE \
+        --type=PROTOCOL_BUFFER \
+        --definition='syntax = "proto3";
+
+message MailMessage {
+  string recipient = 1;
+  string sender = 2;
+  string subject = 3;
+  string html_content = 4;
+  string text_content = 5;
+}'
+
+Created schema [MAIL_MESSAGE].
+❯ gcloud pubsub schemas list
+NAME          TYPE             DEFINITION
+MAIL_MESSAGE  PROTOCOL_BUFFER
 ```
 ## Create a pub/sub topic
 
@@ -82,10 +115,13 @@ See the [quickstart guide](https://cloud.google.com/pubsub/docs/quickstart-cli#c
 
 > **Note:** You will have to set up a GCP project, enable the Pub/Sub API etc. See [here](https://cloud.google.com/pubsub/docs/quickstart-cli#before-you-begin)
 
-Once GCP is configured, create a topic named `function-send-email`:
+Once GCP is configured, create a topic named `send-mail-message`, with the defined schema:
 ```
-❯ gcloud pubsub topics create function-send-email
-Created topic [projects/thirsty-sailor-290220/topics/function-send-email].
+❯ gcloud pubsub topics create send-mail-message \
+--message-encoding=json \
+--schema=MAIL_MESSAGE
+
+Created topic [projects/thirsty-sailor-290220/topics/send-mail-message].
 ```
 
 ## Deploying the function
@@ -97,17 +133,28 @@ See the [guide](https://cloud.google.com/functions/docs/deploying/filesystem#dep
 --source function \
 --entry-point cloud_send_mail \
 --runtime python38 \
---trigger-topic function-send-email \
+--trigger-topic send-mail-message \
 --env-vars-file .env.yaml \
 --retry
 
 Deploying function (may take a while - up to 2 minutes)...
 ```
 
+### Update deployment
+```
+gcloud functions deploy cloud_send_mail --update-env-vars MAILGUN_API_SENDING_KEY=bar
+```
+
 # Triggering the function
 ```
-❯ gcloud pubsub topics publish function-send-email --message \
-'{"rcpt": "scott.houseman@gmail.com", "sender": "noreply@stockfair.net","subject": "Test message","html_content": "<h1>Test</h1>","text_content": "TEST"}'
+❯ gcloud pubsub topics publish send-mail-message --message \
+'{
+    "recipient": "scott.houseman@gmail.com",
+    "sender": "noreply@stockfair.net",
+    "subject": "Test message",
+    "html_content": "<h1>Test</h1>",
+    "text_content": "TEST"
+}'
 
 ```
 
@@ -141,7 +188,7 @@ If your application and the emulator run on the same machine, you can set the en
     $ pyenv local python-pubsub
     $ pip install google-cloud-pubsub
     $ cd samples/snippets/
-    $ python publisher.py thirsty-sailor-290220 create function-send-email
+    $ python publisher.py thirsty-sailor-290220 create send-mail-message
 
 # Return to using cloud
 
