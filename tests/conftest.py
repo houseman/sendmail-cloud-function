@@ -2,7 +2,7 @@ import base64
 import json
 
 import pytest
-from cloudfunc.models import MailMessage
+from schemas import MailMessage
 
 
 @pytest.fixture()
@@ -17,7 +17,7 @@ def mock_context(mocker):
 @pytest.fixture()
 def mock_message():
     return dict(
-        rcpt="info@example.com",
+        recipient="info@example.com",
         sender="test@example.com",
         subject="Test subject",
         html_content="<h1>Test Message</h1><p>Test HTML message</p>",
@@ -49,3 +49,12 @@ def mock_message_object(mocker):
         html_content="<h1>Test Message</h1><p>Test HTML message</p>",
         text_content="Test plain text",
     )
+
+
+@pytest.fixture
+def mock_ok_response(mocker):
+    mock_response = mocker.Mock()
+    mock_response.status_code = 200
+    mock_response.text = "OK"
+
+    return mock_response

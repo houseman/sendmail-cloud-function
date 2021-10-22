@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+message MailMessage {
+  string recipient = 1;
+  string sender = 2;
+  string subject = 3;
+  string html_content = 4;
+  string text_content = 5;
+}

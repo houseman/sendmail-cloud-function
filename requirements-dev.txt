@@ -1,5 +1,7 @@
-pre-commit==2.10.0
-isort==5.7.0
-mypy==0.800
-flake8==3.8.4
-black==20.8b1
+pre-commit >= 2.10.0, < 3.0.0
+isort >= 5.7.0, < 6.0.0
+mypy >= 0.800, < 0.900
+flake8 >= 3.8.4, < 4.0.0
+black >= 20.8b1, < 21
+functions-framework >= 2.1.0, < 3.0.0
+uuid >= 1.30, < 2.0

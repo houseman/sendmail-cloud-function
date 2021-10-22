@@ -2,9 +2,9 @@ import pytest
 
 
 def test_mail_server_response_error():
-    from cloudfunc.exceptions import ApiResponseError
+    from exceptions import ApiError
 
-    error = ApiResponseError(status_code=400, message="Test")
+    error = ApiError(status_code=400, message="Test")
 
     assert error.status_code == 400
     assert error.message == "Test"
@@ -13,10 +13,17 @@ def test_mail_server_response_error():
 
 def test_api_response_error(mocker, mock_message_object):
     import requests
-    from cloudfunc.controllers import Controller
-    from cloudfunc.exceptions import ApiResponseError
+    from exceptions import ApiError
+    from integrations import Mailgun
 
-    controller = Controller()
-    mocker.patch.object(requests, "post", side_effect=Exception("mocked error"))
-    with pytest.raises(ApiResponseError):
-        controller._send_to_api(mock_message_object)
+    mock_session = mocker.Mock()
+    mock_response = mocker.Mock()
+    mocker.patch.object(
+        mock_session,
+        "post",
+        side_effect=requests.exceptions.HTTPError(response=mock_response),
+    )
+    mocker.patch.object(requests, "Session", return_value=mock_session)
+
+    with pytest.raises(ApiError):
+        Mailgun().send(mock_message_object)

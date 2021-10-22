@@ -1,58 +1,205 @@
-# Create a pub/sub topic
+A simple Google Cloud Function, triggered ny a PubSub topic, that will send an email via the [Mailgun](https://www.mailgun.com/) service.
 
-https://cloud.google.com/pubsub/docs/quickstart-cli#create_a_subscription
+Sending email asynchronously through a third-party provider is a pretty good use case for distributed event streaming through Google Cloud Pub/Sub.
+This is just a scratchpad repo to demonstrate to myself and others how it can be done using a Python 3.8 Cloud Function.
 
+The content below is mostly derived from the Google Cloud Platform (GCP) documentation.
+
+# Resources
+- [Google Cloud Functions Pub/Sub Triggers](https://cloud.google.com/functions/docs/calling/pubsub)
+
+# Developer setup
+
+## Clone this repository
 ```
-$ gcloud pubsub topics create function-send-email
-Created topic [projects/thirsty-sailor-290220/topics/function-send-email].
+❯ git clone git@github.com:houseman/sendmail-cloud-git
+❯ cd sendmail-cloud-function
+```
+### Structure
+```
+❯ tree .
+.
+├── README.md
+├── function
+│   ├── __init__.py
+│   ├── config.py
+│   ├── controllers.py
+│   ├── exceptions.py
+│   ├── integrations.py
+│   ├── main.py                 <-- Function entry point
+│   ├── requirements.txt        <-- Function dependency list meta file
+│   ├── responses.py
+│   └── schemas.py
+├── requirements-dev.txt        <-- Dev environment dependency list meta file
+├── schema.proto                <-- Pub/Sub message schema definition
+├── scripts
+│   └── test.sh
+├── tests
+│   ├── __init__.py
+│   ├── conftest.py
+│   ├── requirements-test.txt   <-- Test pack dependency list meta file
+│   ├── test_config.py
+│   ├── test_controller.py
+│   ├── test_exceptions.py
+│   ├── test_integrations.py
+│   └── test_main.py
+└── version
+```
+## Create a Python virtual environment
+I recommend using [`pyenv-virtualenv`](https://github.com/pyenv/pyenv-virtualenv)
+```
+❯ pyenv virtualenv 3.8.9 sendmail-cloud-function
+❯ pyenv local sendmail-cloud-function
+❯ pip install --upgrade pip
+```
+or just
+```
+❯ python3 -m venv venv
+❯ source ./venv/bin/activate.
 ```
 
-# Deploying the function
+## Install requirements
+**Note** that Cloud Functions specifies the `requirements.txt` file be in the same directory that contains `main.py`
+```
+❯ pip install -r function/requirements.txt
+❯ pip install -r requirements-dev.txt
+```
 
-https://cloud.google.com/functions/docs/deploying/filesystem#deploy_using_the_gcloud_tool
+## Install `pre-commit`
+```
+❯ pre-commit install
+pre-commit installed at .git/hooks/pre-commit
+```
 
+### VSCode setup
+Some useful configurations. Edit these into your `.vscode/settings.json` file.
+#### Add the `function` directory to path:
+This will enable Pylance to resolve import paths.
+```json
+{
+    "python.analysis.extraPaths": [
+        "function"
+    ]
+}
+```
 
-    $ cd function
-    $ gcloud functions deploy cloud_send_mail \
-    --entry-point cloud_send_mail \
-    --runtime python38 \
-    --trigger-topic function-send-email \
-    --retry
+## Run tests
+These should pass with 100% coverage.
+```
+❯ ./scripts/test.sh
+```
+# Mailgun
+You will need to
+- [Create a Mailgun account](https://signup.mailgun.com/new/signup)
+- [Add your domain to Mailgun](https://help.mailgun.com/hc/en-us/articles/203637190-How-Do-I-Add-or-Delete-a-Domain-)
+- [Verify your domain](https://help.mailgun.com/hc/en-us/articles/360026833053-Domain-Verification-Walkthrough)
+- [Retrieve your Mailgun API sending key](https://help.mailgun.com/hc/en-us/articles/203380100-Where-Can-I-Find-My-API-Key-and-SMTP-Credentials-)
 
-    Deploying function (may take a while - up to 2 minutes)...⠛
-    For Cloud Build Stackdriver Logs, visit: https://console.cloud.google.com/logs/viewer?project...
-    Deploying function (may take a while - up to 2 minutes)...done.
-    availableMemoryMb: 256
-    buildId: d82ec16f-3a10-4482-bf63-dc0d5c67ee7d
-    entryPoint: cloud_send_mail
-    eventTrigger:
-    eventType: google.pubsub.topic.publish
-    failurePolicy:
-        retry: {}
-    resource: projects/thirsty-sailor-290220/topics/function-send-email
-    service: pubsub.googleapis.com
-    ingressSettings: ALLOW_ALL
-    labels:
-    deployment-tool: cli-gcloud
-    name: projects/thirsty-sailor-290220/locations/us-central1/functions/cloud_send_mail
-    runtime: python38
-    serviceAccountEmail: thirsty-sailor-290220@appspot.gserviceaccount.com
-    sourceUploadUrl: https://storage.googleapis.com/gcf-upload-...
-    status: ACTIVE
-    timeout: 60s
-    updateTime: '2021-02-03T16:15:12.655Z'
-    versionId: '1'
+## Confirm credentials work
+Once done, you can test that sending works:
+```
+❯ curl --silent --user 'api:MAILGUN_API_SENDING_KEY' \
+    https://${MAILGUN_HOST}/v3/${MAILGUN_DOMAIN}/messages \
+    --form from='Excited User <mailgun@example.net>' \
+    --form to=me@mail.com \
+    --form subject='Hello' \
+    --form text='Testing some Mailgun awesomeness!'
+```
 
+# Google Cloud Platform (GCP) setup
+Some configuration is required in GCP.
+- Login to GCP Console
+- Create a new project (or select an existing one, it makes no difference really)
+- **Note:** your chosen project must be linked to a billing account
+- You will need the following GCP services enabled for your project
+  - Cloud Functions  (Possibly [free](https://cloud.google.com/free/docs/gcp-free-tier/#cloud-functions))
+  - Cloud Build (Possibly [free](https://cloud.google.com/free/docs/gcp-free-tier/#cloud-build))
+  - Pub/Sub (Possibly [free](https://cloud.google.com/free/docs/gcp-free-tier/#pub-sub))
 
-# To view logs
+## Configuration
+### Environment variables
+Certain environment variables must be set for configuration of the Mailgun API at runtime.
 
-    $ gcloud functions logs read cloud_send_mail
-    $ gcloud logging read "log_name:projects/thirsty-sailor-290220/logs/python"
+Cloud Functions allows [various methods](https://cloud.google.com/functions/docs/configuring/env-var#using_runtime_environment_variables) to set environment variable values.
 
+Create a file named `.env.yaml` in the root directory, and store credentials, for example:
+```yaml
+MAILGUN_HOST: api.mailgun.net
+MAILGUN_DOMAIN: mg.example.net
+MAILGUN_API_SENDING_KEY: your-mailgun-api-send-key
+```
+### Create a Schema
+A schema is a format that messages must follow, creating a contract between publisher and subscriber that Pub/Sub will enforce.
 
+See Documentation: [Creating and managing schemas ](https://cloud.google.com/pubsub/docs/schemas)
+
+Create a schema with ID `MAIL_MESSAGE`, defined in Protocol Buffer 3 format:
+```
+❯ gcloud pubsub schemas create MAIL_MESSAGE \
+        --type=PROTOCOL_BUFFER \
+        --definition='syntax = "proto3";
+
+message MailMessage {
+  string recipient = 1;
+  string sender = 2;
+  string subject = 3;
+  string html_content = 4;
+  string text_content = 5;
+}'
+
+Created schema [MAIL_MESSAGE].
+❯ gcloud pubsub schemas list
+NAME          TYPE             DEFINITION
+MAIL_MESSAGE  PROTOCOL_BUFFER
+```
+## Create a pub/sub topic
+
+See the [quickstart guide](https://cloud.google.com/pubsub/docs/quickstart-cli#create_a_topic)
+
+Once GCP is configured, create a topic named `send-mail-message`, with the defined schema:
+```
+❯ gcloud pubsub topics create send-mail-message \
+--message-encoding=json \
+--schema=MAIL_MESSAGE
+
+Created topic [projects/thirsty-sailor-290220/topics/send-mail-message].
+```
+
+## Deploying the function
+See the [guide](https://cloud.google.com/functions/docs/deploying/filesystem#deploy_using_the_gcloud_tool)
+```
+❯ gcloud functions deploy cloud_send_mail \
+--source function \
+--entry-point cloud_send_mail \
+--runtime python38 \
+--trigger-topic send-mail-message \
+--env-vars-file .env.yaml \
+--retry
+
+Deploying function (may take a while - up to 2 minutes)...
+```
+### Update deployment
+Update the deployment to change environment variable values.
+```
+gcloud functions deploy cloud_send_mail --update-env-vars MAILGUN_API_SENDING_KEY=bar
+```
 # Triggering the function
+Publish a message to trigger the function and send an email
+```
+❯ gcloud pubsub topics publish send-mail-message --message \
+'{
+    "recipient": "scott.houseman@gmail.com",
+    "sender": "noreply@stockfair.net",
+    "subject": "Test message",
+    "html_content": "<h1>Test</h1>",
+    "text_content": "TEST"
+}'
 
-    gcloud pubsub topics publish function-send-email --message YOUR_NAME
+```
+# To view logs
+```
+❯ gcloud functions logs read cloud_send_mail --sort-by=TIME_UTC --limit=10
+```
 
 # Installing the emulator
 
@@ -65,7 +212,7 @@ source: https://cloud.google.com/pubsub/docs/emulator
     $ gcloud beta emulators pubsub start --project=thirsty-sailor-290220
     $ sudo ufw allow from any to any port 8941 proto tcp
 
-# Setting environment variables
+## Setting environment variables
 
 If your application and the emulator run on the same machine, you can set the environment variables automatically:
 
@@ -79,27 +226,8 @@ If your application and the emulator run on the same machine, you can set the en
     $ pyenv local python-pubsub
     $ pip install google-cloud-pubsub
     $ cd samples/snippets/
-    $ python publisher.py thirsty-sailor-290220 create function-send-email
+    $ python publisher.py thirsty-sailor-290220 create send-mail-message
 
-# Return to using cloud
+## Return to using cloud
 
     $ unset PUBSUB_EMULATOR_HOST
-
-# use secrets
-
-    $ gcloud services enable secretmanager.googleapis.com cloudfunctions.googleapis.com
-    $ echo -n "****************-******-******" | \
-    gcloud secrets create mailgun-api-sending-key \
-      --data-file=- \
-      --replication-policy automatic
-    $ gcloud secrets add-iam-policy-binding mailgun-api-sending-key \
-    --role roles/secretmanager.secretAccessor \
-    --member serviceAccount:876923987677-compute@developer.gserviceaccount.com
-
-    $ gcloud secrets versions access 1 --secret="mailgun-api-sending-key"
-
-
-# pytest
-
-    $ export PYTHONPATH=.
-    $ pytest --import-mode importlib -vv

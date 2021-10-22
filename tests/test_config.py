@@ -1,59 +1,15 @@
-import google.auth
-import pytest
+import os
 
 
-@pytest.mark.parametrize("secret_string", [("secret"), ("Something else")])
-def test_get_mailgun_api_sending_key(mocker, secret_string):
-    from cloudfunc.config import Config
-    from google.cloud import secretmanager_v1
+def test_get_env_val(mocker):
+    # Patch os.environ.get
+    mock_env_vars = {"ONE": "1", "TWO": "2", "THREE": "3"}
+    mocker.patch.dict(os.environ, mock_env_vars, clear=True)
 
-    mocker.patch.object(google.auth, "default", return_value=(None, "project-id"))
-    mocker.patch.object(
-        secretmanager_v1, "SecretManagerServiceClient", return_value=mocker.Mock()
-    )
+    from config import Config
 
-    payload = mocker.Mock()
-    payload.data = mocker.Mock()
-    mocker.patch.object(payload.data, "decode", return_value=secret_string)
-    access_secret_version = mocker.Mock()
-    access_secret_version.payload = payload
-
-    mocker.patch.object(
-        Config.secret_manager,
-        "access_secret_version",
-        return_value=access_secret_version,
-    )
-
-    config = Config()
-
-    expected = secret_string
-    output = config._get_mailgun_api_sending_key()
-
-    assert output == expected
-
-
-def test_get_mailgun_api_sending_key_exception(mocker):
-    with pytest.raises(Exception):
-        assert test_get_mailgun_api_sending_key(mocker, None)
-
-
-def test_get_mailgun_api_sending_key_exceptions(mocker):
-    from cloudfunc.config import Config
-    from google.api_core.exceptions import PermissionDenied
-    from google.auth.exceptions import DefaultCredentialsError
-    from google.cloud import secretmanager_v1
-
-    mocker.patch.object(
-        google.auth, "default", side_effect=DefaultCredentialsError("Foo")
-    )
-    with pytest.raises(Exception):
-        assert Config()
-
-    mocker.patch.object(google.auth, "default", return_value=(None, "project-id"))
-    mocker.patch.object(
-        secretmanager_v1,
-        "SecretManagerServiceClient",
-        side_effect=PermissionDenied("Foo"),
-    )
-    with pytest.raises(Exception):
-        assert Config()
+    assert os.environ["ONE"] == mock_env_vars["ONE"]
+    assert Config.get_env_val("TWO") == mock_env_vars["TWO"]
+    assert Config.get_env_val("THREE") == "3"
+    assert Config.get_env_val("FOUR") is None
+    assert Config.get_env_val("FIVE", "5") == "5"
