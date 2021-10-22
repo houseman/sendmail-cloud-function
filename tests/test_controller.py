@@ -1,7 +1,6 @@
 import pytest
-
-from function.exceptions import ApiError, ControllerError
-from function.responses import ApiResponse, ControllerResponse
+from exceptions import ApiError, ControllerError
+from responses import ApiResponse, ControllerResponse
 
 
 def test_send_success(mocker, mock_event):
@@ -16,7 +15,7 @@ def test_send_success(mocker, mock_event):
     mock_integration = mocker.Mock()
     mock_integration.send.return_value = api_response
 
-    from function.controllers import SendController
+    from controllers import SendController
 
     controller = SendController()
     controller._integration = mock_integration
@@ -36,7 +35,7 @@ def test_send_error(mocker, mock_event):
     mock_integration = mocker.Mock()
     mock_integration.send.side_effect = api_response
 
-    from function.controllers import SendController
+    from controllers import SendController
 
     controller = SendController()
     controller._integration = mock_integration
@@ -46,8 +45,8 @@ def test_send_error(mocker, mock_event):
 
 
 def test_attribute_exception():
-    from function.controllers import SendController
-    from function.exceptions import PayloadError
+    from controllers import SendController
+    from exceptions import PayloadError
 
     controller = SendController()
 
@@ -56,7 +55,7 @@ def test_attribute_exception():
 
 
 def test_bad_message():
-    from function.controllers import SendController
+    from controllers import SendController
 
     controller = SendController()
 

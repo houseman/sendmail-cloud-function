@@ -1,10 +1,12 @@
 #! /usr/bin/env bash
 # Install test requirements
 echo -e "Installing test dependencies"
-pip install -r tests/requirements-test.txt -q
+pip install -r tests/requirements-test.txt --quiet
 echo -e "Done"
-pip install --quiet --editable .
 echo -e "Run tests"
+
+PYTHONDIR="function"
+export PYTHONPATH=$PYTHONDIR
 
 pytest tests/                   \
 --cov-config .coveragerc        \

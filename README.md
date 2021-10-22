@@ -24,16 +24,31 @@ or just
 ❯ source ./venv/bin/activate.
 ```
 
-## Install the package and dev requirements
+## Install requirements
+**Note** that Cloud Functions requires the `requirements.txt` file be in the same directory that contains `main.py`
+
 ```
-❯ pip install -e .
-❯ pip install -e ".[dev]"
+❯ pip install -r function/requirements.txt
+❯ pip install -r requirements-dev.txt
 ```
 
 ## Install `pre-commit`
 ```
 ❯ pre-commit install
 pre-commit installed at .git/hooks/pre-commit
+```
+
+### VSCode setup
+Some useful configurations. Edit these into your `.vscode/settings.json` file.
+
+#### Add the `function` directory to path:
+This will enable Pylance to resolve import paths.
+```json
+{
+    "python.analysis.extraPaths": [
+        "function"
+    ]
+}
 ```
 
 ## Run tests
@@ -54,7 +69,7 @@ pre-commit installed at .git/hooks/pre-commit
 Create a file named `.env` in the `function` directory, and store credentials
 
 ```
-MAILGUN_HOST=api.eu.mailgun.net
+MAILGUN_HOST=api.mailgun.net
 MAILGUN_DOMAIN=mg.example.net
 MAILGUN_API_SENDING_KEY=4g0801ef-c9d487d3
 ```
@@ -85,17 +100,16 @@ See the [guide](https://cloud.google.com/functions/docs/deploying/filesystem#dep
 Deploying function (may take a while - up to 2 minutes)...
 ```
 
-# To view logs
-
-    $ gcloud functions logs read cloud_send_mail
-    $ gcloud logging read "log_name:projects/thirsty-sailor-290220/logs/python"
-
-
 # Triggering the function
 ```
-gcloud pubsub topics publish function-send-email --message \
+❯ gcloud pubsub topics publish function-send-email --message \
 '{"rcpt": "scott.houseman@gmail.com", "sender": "noreply@stockfair.net","subject": "Test message","html_content": "<h1>Test</h1>","text_content": "TEST"}'
 
+```
+
+# To view logs
+```
+❯ gcloud functions logs read cloud_send_mail --sort-by=TIME_UTC --limit=10
 ```
 
 # Installing the emulator
@@ -128,22 +142,3 @@ If your application and the emulator run on the same machine, you can set the en
 # Return to using cloud
 
     $ unset PUBSUB_EMULATOR_HOST
-
-# use secrets
-
-    $ gcloud services enable secretmanager.googleapis.com cloudfunctions.googleapis.com
-    $ echo -n "****************-******-******" | \
-    gcloud secrets create mailgun-api-sending-key \
-      --data-file=- \
-      --replication-policy automatic
-    $ gcloud secrets add-iam-policy-binding mailgun-api-sending-key \
-    --role roles/secretmanager.secretAccessor \
-    --member serviceAccount:876923987677-compute@developer.gserviceaccount.com
-
-    $ gcloud secrets versions access 1 --secret="mailgun-api-sending-key"
-
-
-# pytest
-
-    $ export PYTHONPATH=.
-    $ pytest --import-mode importlib -vv
