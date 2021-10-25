@@ -164,7 +164,19 @@ Once GCP is configured, create a topic named `send-mail-message`, with the defin
 
 Created topic [projects/thirsty-sailor-290220/topics/send-mail-message].
 ```
-
+## Setting up authentication
+Configure auth for your local producer to connect to the Pub/Sub service. See [documentation](https://cloud.google.com/pubsub/docs/reference/libraries#setting_up_authentication)
+```
+❯ ACCOUNT_NAME=send-mail-message
+❯ PROJECT_ID=$(gcloud config get-value core/project)
+❯ gcloud iam service-accounts create $ACCOUNT_NAME
+❯ gcloud projects add-iam-policy-binding ${PROJECT_ID} \
+--member="serviceAccount:${ACCOUNT_NAME}@${PROJECT_ID}.iam.gserviceaccount.com" \
+--role="roles/owner"
+❯ gcloud iam service-accounts keys create send-mail-message.json \
+--iam-account=${ACCOUNT_NAME}@${PROJECT_ID}.iam.gserviceaccount.com
+❯ export GOOGLE_APPLICATION_CREDENTIALS="${ACCOUNT_NAME}"
+```
 ## Deploying the function
 See the [guide](https://cloud.google.com/functions/docs/deploying/filesystem#deploy_using_the_gcloud_tool)
 ```
@@ -200,34 +212,25 @@ Publish a message to trigger the function and send an email
 ```
 ❯ gcloud functions logs read cloud_send_mail --sort-by=TIME_UTC --limit=10
 ```
+# Test using the producer
+A test script `producer/send.py` can be used to create a Pub/Sub message in the defined topic, triggering the email send.
 
-# Installing the emulator
+## Configure the producer script
+- Create a file named `.env` in the `producer` directory
+- This file must contain the following values
+```
+GCLOUD_PROJECT_ID=gcp-project-name
+PUBSUB_TOPIC_ID=pubsub-topic-name
+FROM_ADDR=noreply@example.com
+```
+Once the above configuration is in place, run a test like:
+```
+❯ python producer/send.py \
+--to test@example.com \
+--subject "Test from CLI producer" \
+--message "<h1>Test message</h1>
+<h2>Send from the CLI</h2>
+<h3>Cloud Functions are cool.</h3>
+"
 
-source: https://cloud.google.com/pubsub/docs/emulator
-
-    $ sudo apt install openjdk-8-jre
-    $ gcloud components install pubsub-emulator
-    $ gcloud components update
-
-    $ gcloud beta emulators pubsub start --project=thirsty-sailor-290220
-    $ sudo ufw allow from any to any port 8941 proto tcp
-
-## Setting environment variables
-
-If your application and the emulator run on the same machine, you can set the environment variables automatically:
-
-    $ $(gcloud beta emulators pubsub env-init)
-    $ export GOOGLE_APPLICATION_CREDENTIALS="/home/scott/.google/keys/thirsty-sailor-290220-a9e3e7013c5c.json"
-
-    $ cd ~/workspace/
-    $ git clone https://github.com/googleapis/python-pubsub.git
-    $ cd python-pubsub/
-    $ pyenv virtualenv 3.8.6 python-pubsub
-    $ pyenv local python-pubsub
-    $ pip install google-cloud-pubsub
-    $ cd samples/snippets/
-    $ python publisher.py thirsty-sailor-290220 create send-mail-message
-
-## Return to using cloud
-
-    $ unset PUBSUB_EMULATOR_HOST
+```
