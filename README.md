@@ -223,14 +223,48 @@ GCLOUD_PROJECT_ID=gcp-project-name
 PUBSUB_TOPIC_ID=pubsub-topic-name
 FROM_ADDR=noreply@example.com
 ```
+## Set up authentication
+> See [documentation](https://cloud.google.com/pubsub/docs/reference/libraries#setting_up_authentication)
+1.Create a service account named `pubsub-email-function`
+```
+❯ SERVICE_ACCOUNT_NAME='pubsub-email-function'
+❯ gcloud iam service-accounts create $SERVICE_ACCOUNT_NAME
+Created service account [pubsub-email-function].
+
+```
+2. Grant permissions to the service account.
+```
+❯ PROJECT_ID=$(gcloud config get-value core/project)
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+--member="serviceAccount:${SERVICE_ACCOUNT_NAME}@${PROJECT_ID}.iam.gserviceaccount.com" \
+--role="roles/owner"
+
+```
+3. Generate a local key file
+```
+KEY_FILE_PATH=~/.google/keys/${PROJECT_ID}-${SERVICE_ACCOUNT_NAME}.json
+gcloud iam service-accounts keys create $KEY_FILE_PATH \
+--iam-account=$SERVICE_ACCOUNT_NAME@$PROJECT_ID.iam.gserviceaccount.com
+```
+4. Provide authentication credentials to your application code by setting the environment variable
+```
+export GOOGLE_APPLICATION_CREDENTIALS=$KEY_FILE_PATH
+```
+
+## Run a test
 Once the above configuration is in place, run a test like:
 ```
 ❯ python producer/send.py \
 --to test@example.com \
 --subject "Test from CLI producer" \
---message "<h1>Test message</h1>
-<h2>Send from the CLI</h2>
-<h3>Cloud Functions are cool.</h3>
-"
-
+--message "<html>
+  <head>
+    <title>Test email</title>
+  </head>
+  <body>
+    <h1>Test message</h1>
+    <h2>Send from the CLI</h2>
+    <p><strong>Lorem Ipsum</strong> is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.</p>
+  </body>
+</html>"
 ```
