@@ -30,6 +30,10 @@ The content below is mostly derived from the Google Cloud Platform (GCP) documen
 │   ├── requirements.txt        <-- Function dependency list meta file
 │   ├── responses.py
 │   └── schemas.py
+├── producer
+│   ├── __init__.py
+│   ├── requirements.txt        <-- Producer requirements meta file
+│   └── send.py
 ├── requirements-dev.txt        <-- Dev environment dependency list meta file
 ├── schema.proto                <-- Pub/Sub message schema definition
 ├── scripts
@@ -214,7 +218,10 @@ Publish a message to trigger the function and send an email
 ```
 # Test using the producer
 A test script `producer/send.py` can be used to create a Pub/Sub message in the defined topic, triggering the email send.
-
+## Install producer requirements
+```
+❯ pip install -r requirements.txt
+```
 ## Configure the producer script
 - Create a file named `.env` in the `producer` directory
 - This file must contain the following values
@@ -225,7 +232,8 @@ FROM_ADDR=noreply@example.com
 ```
 ## Set up authentication
 > See [documentation](https://cloud.google.com/pubsub/docs/reference/libraries#setting_up_authentication)
-1.Create a service account named `pubsub-email-function`
+
+1. Create a service account named `pubsub-email-function`
 ```
 ❯ SERVICE_ACCOUNT_NAME='pubsub-email-function'
 ❯ gcloud iam service-accounts create $SERVICE_ACCOUNT_NAME
@@ -242,13 +250,13 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 ```
 3. Generate a local key file
 ```
-KEY_FILE_PATH=~/.google/keys/${PROJECT_ID}-${SERVICE_ACCOUNT_NAME}.json
-gcloud iam service-accounts keys create $KEY_FILE_PATH \
+❯ KEY_FILE_PATH=~/.google/keys/${PROJECT_ID}-${SERVICE_ACCOUNT_NAME}.json
+❯ gcloud iam service-accounts keys create $KEY_FILE_PATH \
 --iam-account=$SERVICE_ACCOUNT_NAME@$PROJECT_ID.iam.gserviceaccount.com
 ```
 4. Provide authentication credentials to your application code by setting the environment variable
 ```
-export GOOGLE_APPLICATION_CREDENTIALS=$KEY_FILE_PATH
+❯ export GOOGLE_APPLICATION_CREDENTIALS=$KEY_FILE_PATH
 ```
 
 ## Run a test
