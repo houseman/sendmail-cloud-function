@@ -44,16 +44,6 @@ def test_send_error(mocker, mock_event):
         controller.send(mock_event)
 
 
-def test_attribute_exception():
-    from controllers import SendController
-    from exceptions import PayloadError
-
-    controller = SendController()
-
-    with pytest.raises(PayloadError):
-        controller._get_message_from_payload({})
-
-
 def test_bad_message():
     from controllers import SendController
 
