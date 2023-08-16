@@ -52,7 +52,7 @@ The content below is mostly derived from the Google Cloud Platform (GCP) documen
 ## Create a Python virtual environment
 I recommend using [`pyenv-virtualenv`](https://github.com/pyenv/pyenv-virtualenv)
 ```
-❯ pyenv virtualenv 3.8.9 sendmail-cloud-function
+❯ pyenv virtualenv 3.11.4 sendmail-cloud-function
 ❯ pyenv local sendmail-cloud-function
 ❯ pip install --upgrade pip
 ```
@@ -187,7 +187,7 @@ See the [guide](https://cloud.google.com/functions/docs/deploying/filesystem#dep
 ❯ gcloud functions deploy cloud_send_mail \
 --source function \
 --entry-point cloud_send_mail \
---runtime python38 \
+--runtime python311\
 --trigger-topic send-mail-message \
 --env-vars-file .env.yaml \
 --retry

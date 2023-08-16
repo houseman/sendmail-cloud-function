@@ -1,40 +1,45 @@
-# Apply to all files without commiting:
-#   pre-commit run --all-files
-# Update this file:
-#   pre-commit autoupdate
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v4.4.0
     hooks:
+      - id: check-case-conflict
       - id: check-yaml
       - id: end-of-file-fixer
       - id: trailing-whitespace
-  - repo: https://github.com/psf/black
-    rev: 20.8b1
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: name-tests-test
+        args: ["--pytest-test-first"]
+      - id: no-commit-to-branch
+
+  - repo: https://github.com/lk16/detect-missing-init
+    rev: v0.1.6
     hooks:
-      - id: black
-  - repo: https://github.com/asottile/seed-isort-config
-    rev: v2.2.0
-    hooks:
-      - id: seed-isort-config
-  - repo: https://github.com/pre-commit/mirrors-isort
-    rev: v5.7.0
-    hooks:
-      - id: isort
+      - id: detect-missing-init
         args:
-          - "-m=3"
-          - "-tc"
-          - "-w=88"
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.800
+          ["--create", "--track", "--python-folders", "tests,tal_stats_client"]
+
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.10.1
     hooks:
-      - id: mypy
-        args: [--ignore-missing-imports]
-  - repo: https://gitlab.com/pycqa/flake8
-    rev: "3.8.4"
+      - id: pyupgrade
+        args: ["--py11-plus"]
+
+  # - repo: local
+  #   hooks:
+  #     - id: lint-check
+  #       name: lint
+  #       entry: make lint
+  #       language: system
+  #       pass_filenames: false
+  #       always_run: true
+
+  - repo: local
     hooks:
-      - id: flake8
-        args: # arguments to configure flake8
-          # making flake8 line length compatible with black
-          - "--max-line-length=88"
-          - "--max-complexity=18"
+      - id: pytest-check
+        name: pytest
+        entry: make test
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [push]
