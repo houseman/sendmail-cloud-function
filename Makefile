@@ -14,7 +14,7 @@ TEST_OPTS ?=
 LINT_OPTS ?=
 PIP_OPTS ?=
 PIP_ARGS = --quiet --upgrade
-PIP_COMPILE_ARGS = --upgrade --no-emit-index-url --no-emit-trusted-host --resolver=legacy
+PIP_COMPILE_ARGS = --upgrade --no-emit-index-url --no-emit-trusted-host
 
 .PHONY: install update lint test help .update-pip .pip-sync .pip-compile .update-pc
 
@@ -29,8 +29,8 @@ PIP_COMPILE_ARGS = --upgrade --no-emit-index-url --no-emit-trusted-host --resolv
 
 .pip-compile:
 	@python -m piptools compile --version &> /dev/null || (echo "Installing pip-tools" && python -m pip install --quiet pip-tools)
-	CUSTOM_COMPILE_COMMAND="make update-deps" python -m piptools compile  $(PIP_COMPILE_ARGS) --output-file function/requirements.txt pyproject.toml
-	CUSTOM_COMPILE_COMMAND="make update-deps" python -m piptools compile  $(PIP_COMPILE_ARGS) --extra dev --pip-args "--constrain requirements.txt" --output-file dev-requirements.txt pyproject.toml
+	CUSTOM_COMPILE_COMMAND="make update" python -m piptools compile  $(PIP_COMPILE_ARGS) --output-file function/requirements.txt pyproject.toml
+	CUSTOM_COMPILE_COMMAND="make update" python -m piptools compile  $(PIP_COMPILE_ARGS) --extra dev --pip-args "--constrain function/requirements.txt" --output-file dev-requirements.txt pyproject.toml
 
 .pip-sync:
 	@python -m piptools sync --version &> /dev/null || (echo "Installing pip-tools" && python -m pip install --quiet pip-tools)

@@ -11,7 +11,7 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
-keywords = ["email", "GCP"]
+keywords = ["email", "Google Cloud Platform"]
 
 dependencies = ["flask", "functions-framework", "google-cloud-logging"]
 
@@ -32,13 +32,22 @@ dev = [
   "pytest",
   "pytest-cov[all]",
   "pytest-mock",
+
+  # Required by test producer
+  "python-dotenv",
+  "html2text",
+  "google-cloud-pubsub",
+  "click",
 ]
 
 [project.urls]
 repository = "https://github.com/houseman/sendmail-cloud-function"
 
+# [project.scripts]
+# send-mail = "producer:send:send_email_task"
+
 [build-system]
-requires = ["setuptools>=45"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
