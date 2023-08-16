@@ -1,55 +1,66 @@
-A simple Google Cloud Function, triggered ny a PubSub topic, that will send an email via the [Mailgun](https://www.mailgun.com/) service.
+# A simple Google Cloud Function
+Triggered ny a PubSub topic, and will send an email via the [Mailgun](https://www.mailgun.com/) service API.
 
 Sending email asynchronously through a third-party provider is a pretty good use case for distributed event streaming through Google Cloud Pub/Sub.
-This is just a scratchpad repo to demonstrate to myself and others how it can be done using a Python 3.8 Cloud Function.
+This is just a scratchpad repo to demonstrate to myself and others how it can be done using a Python 3.11 Cloud Function.
 
 The content below is mostly derived from the Google Cloud Platform (GCP) documentation.
 
-# Resources
+## Resources
 - [Google Cloud Functions Pub/Sub Triggers](https://cloud.google.com/functions/docs/calling/pubsub)
 
-# Developer setup
+## Developer setup
 
-## Clone this repository
+### Clone this repository
 ```
 ❯ git clone git@github.com:houseman/sendmail-cloud-git
 ❯ cd sendmail-cloud-function
 ```
-### Structure
-```
+#### Repo Structure
+```shell
 ❯ tree .
 .
+├── Makefile
 ├── README.md
-├── function
+├── dev-requirements.txt    <-- Local development requirements
+├── function                <-- Cloud Function source directory
+│   ├── main.py             <-- Required by Cloud Function (entry point)
+│   ├── requirements.txt    <-- Required by Cloud Function (dependency list)
+│   └── send_mail           <-- Module contains function logic
+│       ├── __init__.py
+│       ├── config.py
+│       ├── controllers.py
+│       ├── exceptions.py
+│       ├── integrations.py
+│       ├── responses.py
+│       └── schemas.py
+├── producer                <-- Producer can be used for local testing
 │   ├── __init__.py
-│   ├── config.py
-│   ├── controllers.py
-│   ├── exceptions.py
-│   ├── integrations.py
-│   ├── main.py                 <-- Function entry point
-│   ├── requirements.txt        <-- Function dependency list meta file
-│   ├── responses.py
-│   └── schemas.py
-├── producer
-│   ├── __init__.py
-│   ├── requirements.txt        <-- Producer requirements meta file
 │   └── send.py
-├── requirements-dev.txt        <-- Dev environment dependency list meta file
-├── schema.proto                <-- Pub/Sub message schema definition
-├── scripts
-│   └── test.sh
-├── tests
-│   ├── __init__.py
-│   ├── conftest.py
-│   ├── requirements-test.txt   <-- Test pack dependency list meta file
-│   ├── test_config.py
-│   ├── test_controller.py
-│   ├── test_exceptions.py
-│   ├── test_integrations.py
-│   └── test_main.py
-└── version
+├── proto                   <-- Protocol Buffers directory
+│   └── schema.proto        <-- Protobuf defines Pub/Sub message schema
+├── pyproject.toml          <-- Python project configuration
+└── tests                   <-- Directory contains unit tests
+    ├── __init__.py
+    ├── conftest.py
+    ├── test_config.py
+    ├── test_controller.py
+    ├── test_exceptions.py
+    ├── test_integrations.py
+    └── test_main.py
 ```
-## Create a Python virtual environment
+#### Makefile
+Some handy shortcuts are available if you have `make` available.
+```shell
+❯ make help
+help                 Show this help message
+install              Install dependencies in current environment
+lint                 Run linting tools
+test                 Run all unit tests
+update               Update dependencies in current environment
+```
+
+### Create a Python virtual environment
 I recommend using [`pyenv-virtualenv`](https://github.com/pyenv/pyenv-virtualenv)
 ```
 ❯ pyenv virtualenv 3.11.4 sendmail-cloud-function
@@ -62,44 +73,40 @@ or just
 ❯ source ./venv/bin/activate.
 ```
 
-## Install requirements
-**Note** that Cloud Functions specifies the `requirements.txt` file be in the same directory that contains `main.py`
+### Install requirements
+```shell
+❯ make install
 ```
-❯ pip install -r function/requirements.txt
-❯ pip install -r requirements-dev.txt
+Or, if you do not have `make`
+```
+❯ pip install -e ".[dev]"
 ```
 
-## Install `pre-commit`
+### Install `pre-commit`
 ```
 ❯ pre-commit install
 pre-commit installed at .git/hooks/pre-commit
 ```
 
-### VSCode setup
-Some useful configurations. Edit these into your `.vscode/settings.json` file.
-#### Add the `function` directory to path:
-This will enable Pylance to resolve import paths.
-```json
-{
-    "python.analysis.extraPaths": [
-        "function"
-    ]
-}
+### Run tests
+These should pass with 100% coverage.
+```shell
+❯ make test
+```
+Or
+```shell
+❯ pytest
 ```
 
-## Run tests
-These should pass with 100% coverage.
-```
-❯ ./scripts/test.sh
-```
-# Mailgun
+## Mailgun
 You will need to
 - [Create a Mailgun account](https://signup.mailgun.com/new/signup)
 - [Add your domain to Mailgun](https://help.mailgun.com/hc/en-us/articles/203637190-How-Do-I-Add-or-Delete-a-Domain-)
+  - **Note** that on the Mailgun Free plan, only a sandbox domain can be configured to send to a [list of authorized recipients](https://help.mailgun.com/hc/en-us/articles/217531258-Authorized-Recipients)
 - [Verify your domain](https://help.mailgun.com/hc/en-us/articles/360026833053-Domain-Verification-Walkthrough)
 - [Retrieve your Mailgun API sending key](https://help.mailgun.com/hc/en-us/articles/203380100-Where-Can-I-Find-My-API-Key-and-SMTP-Credentials-)
 
-## Confirm credentials work
+### Confirm credentials work
 Once done, you can test that sending works:
 ```
 ❯ curl --silent --user 'api:MAILGUN_API_SENDING_KEY' \
@@ -110,7 +117,7 @@ Once done, you can test that sending works:
     --form text='Testing some Mailgun awesomeness!'
 ```
 
-# Google Cloud Platform (GCP) setup
+## Google Cloud Platform (GCP) setup
 Some configuration is required in GCP.
 - Login to GCP Console
 - Create a new project (or select an existing one, it makes no difference really)
@@ -120,8 +127,8 @@ Some configuration is required in GCP.
   - Cloud Build (Possibly [free](https://cloud.google.com/free/docs/gcp-free-tier/#cloud-build))
   - Pub/Sub (Possibly [free](https://cloud.google.com/free/docs/gcp-free-tier/#pub-sub))
 
-## Configuration
-### Environment variables
+### Configuration
+#### Environment variables
 Certain environment variables must be set for configuration of the Mailgun API at runtime.
 
 Cloud Functions allows [various methods](https://cloud.google.com/functions/docs/configuring/env-var#using_runtime_environment_variables) to set environment variable values.
@@ -132,7 +139,7 @@ MAILGUN_HOST: api.mailgun.net
 MAILGUN_DOMAIN: mg.example.net
 MAILGUN_API_SENDING_KEY: your-mailgun-api-send-key
 ```
-### Create a Schema
+#### Create a Schema
 A schema is a format that messages must follow, creating a contract between publisher and subscriber that Pub/Sub will enforce.
 
 See Documentation: [Creating and managing schemas ](https://cloud.google.com/pubsub/docs/schemas)
@@ -156,7 +163,7 @@ Created schema [MAIL_MESSAGE].
 NAME          TYPE             DEFINITION
 MAIL_MESSAGE  PROTOCOL_BUFFER
 ```
-## Create a pub/sub topic
+### Create a pub/sub topic
 
 See the [quickstart guide](https://cloud.google.com/pubsub/docs/quickstart-cli#create_a_topic)
 
@@ -168,7 +175,7 @@ Once GCP is configured, create a topic named `send-mail-message`, with the defin
 
 Created topic [projects/thirsty-sailor-290220/topics/send-mail-message].
 ```
-## Setting up authentication
+### Setting up authentication
 Configure auth for your local producer to connect to the Pub/Sub service. See [documentation](https://cloud.google.com/pubsub/docs/reference/libraries#setting_up_authentication)
 ```
 ❯ ACCOUNT_NAME=send-mail-message
@@ -181,7 +188,7 @@ Configure auth for your local producer to connect to the Pub/Sub service. See [d
 --iam-account=${ACCOUNT_NAME}@${PROJECT_ID}.iam.gserviceaccount.com
 ❯ export GOOGLE_APPLICATION_CREDENTIALS="${ACCOUNT_NAME}"
 ```
-## Deploying the function
+### Deploying the function
 See the [guide](https://cloud.google.com/functions/docs/deploying/filesystem#deploy_using_the_gcloud_tool)
 ```
 ❯ gcloud functions deploy cloud_send_mail \
@@ -194,17 +201,17 @@ See the [guide](https://cloud.google.com/functions/docs/deploying/filesystem#dep
 
 Deploying function (may take a while - up to 2 minutes)...
 ```
-### Update deployment
+#### Update deployment
 Update the deployment to change environment variable values.
 ```
 gcloud functions deploy cloud_send_mail --update-env-vars MAILGUN_API_SENDING_KEY=bar
 ```
-# Triggering the function
-Publish a message to trigger the function and send an email
+## Triggering the function
+Publish a message to trigger the function and send an email. Remember that this recipient should be on that your Mailgun account is authorized to send email to.
 ```
 ❯ gcloud pubsub topics publish send-mail-message --message \
 '{
-    "recipient": "scott.houseman@gmail.com",
+    "recipient": "someone@example.com",
     "sender": "noreply@stockfair.net",
     "subject": "Test message",
     "html_content": "<h1>Test</h1>",
@@ -212,17 +219,13 @@ Publish a message to trigger the function and send an email
 }'
 
 ```
-# To view logs
+## To view logs
 ```
 ❯ gcloud functions logs read cloud_send_mail --sort-by=TIME_UTC --limit=10
 ```
-# Test using the producer
+## Test using the producer
 A test script `producer/send.py` can be used to create a Pub/Sub message in the defined topic, triggering the email send.
-## Install producer requirements
-```
-❯ pip install -r requirements.txt
-```
-## Configure the producer script
+### Configure the producer script
 - Create a file named `.env` in the `producer` directory
 - This file must contain the following values
 ```
@@ -230,7 +233,7 @@ GCLOUD_PROJECT_ID=gcp-project-name
 PUBSUB_TOPIC_ID=pubsub-topic-name
 FROM_ADDR=noreply@example.com
 ```
-## Set up authentication
+### Set up authentication
 > See [documentation](https://cloud.google.com/pubsub/docs/reference/libraries#setting_up_authentication)
 
 1. Create a service account named `pubsub-email-function`
@@ -259,7 +262,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
 ❯ export GOOGLE_APPLICATION_CREDENTIALS=$KEY_FILE_PATH
 ```
 
-## Run a test
+### Run a test
 Once the above configuration is in place, run a test like:
 ```
 ❯ python producer/send.py \

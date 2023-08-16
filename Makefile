@@ -38,9 +38,9 @@ PIP_COMPILE_ARGS = --upgrade --no-emit-index-url --no-emit-trusted-host --resolv
 	python -m pip install --no-deps --disable-pip-version-check --quiet --editable .
 	python -m pip install --no-deps --disable-pip-version-check --quiet --editable ".[dev]"
 
-install: .update-pip .pip-sync ## Install dependancies in current environment
+install: .update-pip .pip-sync ## Install dependencies in current environment
 
-update: .update-pip .pip-compile .pip-sync .update-pc ## Update dependancies in current environment
+update: .update-pip .pip-compile .pip-sync .update-pc ## Update dependencies in current environment
 
 test: ## Run all unit tests
 	@echo "\n${CYAN}Running unit tests${RESET}"

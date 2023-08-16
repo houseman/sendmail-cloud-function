@@ -71,7 +71,7 @@ target-version = "py311"
 
 [tool.mypy]
 mypy_path = ["function"]
-exclude = ["build"]
+exclude = ["build", "producer"]
 python_version = 3.11
 ignore_errors = false
 disallow_untyped_calls = true
