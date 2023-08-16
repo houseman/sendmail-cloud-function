@@ -43,17 +43,15 @@ dev = [
 [project.urls]
 repository = "https://github.com/houseman/sendmail-cloud-function"
 
-# [project.scripts]
-# send-mail = "producer:send:send_email_task"
+[project.scripts]
+send-mail = "producer:send_email_task"
 
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-where = ["function"]
-include = ["function*"]
-namespaces = false
+[tool.setuptools.packages]
+find = { namespaces = false }
 
 [tool.ruff]
 src = ["function", "producer", "tests"]

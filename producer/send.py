@@ -4,12 +4,17 @@ import os
 from dataclasses import dataclass
 
 import click
-import dotenv
+
 import html2text
 from google.api_core.exceptions import NotFound as TopicNotFoundException
 from google.cloud import pubsub_v1
 
 logger = logging.Logger(__name__)
+
+
+GCLOUD_PROJECT_ID = os.environ.get("GCLOUD_PROJECT_ID")
+PUBSUB_TOPIC_ID = os.environ.get("PUBSUB_TOPIC_ID")
+FROM_ADDR = str(os.environ.get("FROM_ADDR"))
 
 
 @dataclass
@@ -22,11 +27,6 @@ class MailMessage:
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-
-
-def get_env_file_path() -> str:
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    return os.path.join(dir_path, ".env")
 
 
 @click.command()
@@ -77,12 +77,3 @@ def send_message(message: MailMessage) -> str | None:
         logger.error(f"Error sending pubsub: {pubsub_error}")
 
         return None
-
-
-if __name__ == "__main__":
-    dotenv.load_dotenv(get_env_file_path())
-    GCLOUD_PROJECT_ID = os.environ.get("GCLOUD_PROJECT_ID")
-    PUBSUB_TOPIC_ID = os.environ.get("PUBSUB_TOPIC_ID")
-    FROM_ADDR = str(os.environ.get("FROM_ADDR"))
-
-    send_email_task()
