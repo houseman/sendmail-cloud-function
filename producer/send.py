@@ -2,7 +2,6 @@ import json
 import logging
 import os
 from dataclasses import dataclass
-from typing import Optional
 
 import click
 import dotenv
@@ -19,7 +18,7 @@ class MailMessage:
     sender: str
     subject: str
     html_content: str
-    text_content: Optional[str] = None
+    text_content: str | None = None
 
     def to_json(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
@@ -44,8 +43,8 @@ def get_env_file_path() -> str:
     help="Email message (HTML)",
 )
 def send_email_task(
-    recipient: str, subject: str, html_content: str, text_content: Optional[str] = None
-) -> Optional[str]:
+    recipient: str, subject: str, html_content: str, text_content: str | None = None
+) -> str | None:
     """sends an email"""
 
     if not text_content:
@@ -63,7 +62,7 @@ def send_email_task(
     return send_message(message)
 
 
-def send_message(message: MailMessage) -> Optional[str]:
+def send_message(message: MailMessage) -> str | None:
     message_json = message.to_json()
 
     publisher = pubsub_v1.PublisherClient()

@@ -25,14 +25,14 @@ repos:
       - id: pyupgrade
         args: ["--py311-plus"]
 
-  # - repo: local
-  #   hooks:
-  #     - id: lint-check
-  #       name: lint
-  #       entry: make lint
-  #       language: system
-  #       pass_filenames: false
-  #       always_run: true
+  - repo: local
+    hooks:
+      - id: lint-check
+        name: lint
+        entry: make lint
+        language: system
+        pass_filenames: false
+        always_run: true
 
   - repo: local
     hooks:
