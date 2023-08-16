@@ -1,8 +1,7 @@
 import logging
-from typing import Dict, Tuple
 
 import google.cloud.logging
-from controllers import SendController
+from send_mail.controllers import SendController
 from google.cloud.functions.context import Context
 
 client = google.cloud.logging.Client()
@@ -15,7 +14,7 @@ client.setup_logging()
 controller = SendController()
 
 
-def cloud_send_mail(event: Dict, context: Context) -> Tuple[str, int]:
+def cloud_send_mail(event: dict, context: Context) -> tuple[str, int]:
     """A background _Google Cloud Function_ to be triggered by a Pub/Sub
     message.
     **Entrypoint:** Use the `--entry-point` flag to specify this function name when

@@ -1,10 +1,10 @@
 import logging
 
 import requests
-from config import Config
-from exceptions import ApiError
-from responses import ApiResponse
-from schemas import MailMessage
+from .config import Config
+from .exceptions import ApiError
+from .responses import ApiResponse
+from .schemas import MailMessage
 
 
 class Mailgun:
@@ -14,9 +14,9 @@ class Mailgun:
         self._session = requests.Session()
         self.host = Config.get_env_val("MAILGUN_HOST")
         self.domain = Config.get_env_val("MAILGUN_DOMAIN")
-        self.timeout = int(Config.get_env_val("MAILGUN_TIMEOUT", "3"))
+        self.timeout = int(Config.get_env_val("MAILGUN_TIMEOUT") or "3")
         logging.info(f"API host: {self.host}")
-        self.api_key = Config.get_env_val("MAILGUN_API_SENDING_KEY")
+        self.api_key = Config.get_env_val("MAILGUN_API_SENDING_KEY") or ""
 
     def send(self, message: MailMessage) -> ApiResponse:
         """Send a `MailMessage` object data to the *Mailgun* endpoint.

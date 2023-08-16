@@ -1,13 +1,12 @@
 import base64
 import json
 import logging
-from typing import Dict
 
-from config import Config
-from exceptions import ApiError, ControllerError, PayloadError
-from integrations import Mailgun
-from responses import ControllerResponse
-from schemas import MailMessage
+from .config import Config
+from .exceptions import ApiError, ControllerError, PayloadError
+from .integrations import Mailgun
+from .responses import ControllerResponse
+from .schemas import MailMessage
 
 
 class SendController:
@@ -20,7 +19,7 @@ class SendController:
     def __init__(self) -> None:
         self._integration = Mailgun()
 
-    def send(self, event: Dict) -> ControllerResponse:
+    def send(self, event: dict) -> ControllerResponse:
         """Send an email contained within the encoded Pub/Sub message}.
 
         ### Args:
@@ -48,7 +47,7 @@ class SendController:
             logging.error(f"{error}")
             raise ControllerError(message=error.message, status_code=error.status_code)
 
-    def _get_message_from_payload(self, event: Dict) -> MailMessage:
+    def _get_message_from_payload(self, event: dict) -> MailMessage:
         """Return a `MailMessage` object, populated with data from the Pub/Sub message
         payload.
         """

@@ -2,7 +2,7 @@ import pytest
 
 
 def test_mail_server_response_error():
-    from exceptions import ApiError
+    from send_mail.exceptions import ApiError
 
     error = ApiError(status_code=400, message="Test")
 
@@ -13,8 +13,8 @@ def test_mail_server_response_error():
 
 def test_api_response_error(mocker, mock_message_object):
     import requests
-    from exceptions import ApiError
-    from integrations import Mailgun
+    from send_mail.exceptions import ApiError
+    from send_mail.integrations import Mailgun
 
     mock_session = mocker.Mock()
     mock_response = mocker.Mock()

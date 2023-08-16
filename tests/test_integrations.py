@@ -1,7 +1,7 @@
 def test_send(mocker, mock_ok_response, mock_message_object):
     import requests
-    from integrations import Mailgun
-    from responses import ApiResponse
+    from send_mail.integrations import Mailgun
+    from send_mail.responses import ApiResponse
 
     mock_session = mocker.Mock()
     mock_session.post.return_value = mock_ok_response

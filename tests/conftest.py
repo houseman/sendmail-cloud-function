@@ -2,7 +2,7 @@ import base64
 import json
 
 import pytest
-from schemas import MailMessage
+from send_mail.schemas import MailMessage
 
 
 @pytest.fixture()

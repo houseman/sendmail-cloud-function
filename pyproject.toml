@@ -1,28 +1,19 @@
 [project]
 name = "sendmail-cloud-function"
 version = "0.0.0"
-authors = [
-  { name="Scott Houseman", email="scott.houseman@gmail.com" },
-]
+authors = [{ name = "Scott Houseman", email = "scott.houseman@gmail.com" }]
 description = "Send Mailgun emails through GCP Pub/Sub"
 readme = "README.md"
 requires-python = ">=3.11"
 classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
 ]
 
-keywords = [
-  "email",
-  "GCP"
-]
+keywords = ["email", "GCP"]
 
-dependencies = [
-  "flask",
-  "functions-framework",
-  "google-cloud-logging"
-]
+dependencies = ["flask", "functions-framework", "google-cloud-logging"]
 
 [project.optional-dependencies]
 
@@ -40,46 +31,37 @@ dev = [
   # Test dependencies
   "pytest",
   "pytest-cov[all]",
-  "pytest-mock"
+  "pytest-mock",
 ]
 
 [project.urls]
 repository = "https://github.com/houseman/sendmail-cloud-function"
 
 [build-system]
-requires = [
-  "setuptools>=45"
-]
+requires = ["setuptools>=45"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-where = [
-  "function"
-]
-include = [
-  "function*"
-]
+where = ["function"]
+include = ["function*"]
 namespaces = false
 
 [tool.ruff]
-src = [
-  "function",
-  "tests"
-]
+src = ["function", "producer", "tests"]
 
 # Exclude a variety of commonly ignored directories.
 exclude = [
-    ".vscode",
-    ".pytest_cache",
-    ".eggs",
-    ".git",
-    "*.egg-info",
-    ".mypy_cache",
-    ".ruff_cache",
-    ".venv",
-    "build",
-    "dist",
-    "venv",
+  ".vscode",
+  ".pytest_cache",
+  ".eggs",
+  ".git",
+  "*.egg-info",
+  ".mypy_cache",
+  ".ruff_cache",
+  ".venv",
+  "build",
+  "dist",
+  "venv",
 ]
 
 # Same as Black.
@@ -88,12 +70,8 @@ line-length = 88
 target-version = "py311"
 
 [tool.mypy]
-files = [
-  "function"
-]
-exclude = [
-  "build"
-]
+mypy_path = ["function"]
+exclude = ["build"]
 python_version = 3.11
 ignore_errors = false
 disallow_untyped_calls = true
@@ -102,37 +80,32 @@ no_implicit_optional = true
 warn_no_return = true
 
 [[tool.mypy.overrides]]
-module = [
-  "tests.*"
-]
+module = ["tests.*"]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["producer.*"]
+ignore_errors = true
+
+[[tool.mypy.overrides]]
+module = ["main"]    # Some things to sort out here
 ignore_errors = true
 
 [tool.pytest.ini_options]
-pythonpath = [
-  "function"
-]
-testpaths = [
-    "tests"
-]
+pythonpath = ["function"]
+testpaths = ["tests"]
 addopts = "--cov --cov-report html --cov-report term-missing --cov-report xml --no-cov-on-fail --cov-fail-under 100"
 
 [tool.coverage.run]
 branch = true
-source = [
-  "function"
-]
-omit = [
-  "tests/*"
-]
+source = ["function"]
+omit = ["tests/*"]
 
 [tool.coverage.report]
 fail_under = 100
 skip_empty = true
 show_missing = true
-exclude_lines = [
-  "pragma: no cover",
-  "if TYPE_CHECKING:"
-]
+exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
 
 [tool.codespell]
 skip = "./htmlcov/**"

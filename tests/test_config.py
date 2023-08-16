@@ -6,7 +6,7 @@ def test_get_env_val(mocker):
     mock_env_vars = {"ONE": "1", "TWO": "2", "THREE": "3"}
     mocker.patch.dict(os.environ, mock_env_vars, clear=True)
 
-    from config import Config
+    from send_mail.config import Config
 
     assert os.environ["ONE"] == mock_env_vars["ONE"]
     assert Config.get_env_val("TWO") == mock_env_vars["TWO"]

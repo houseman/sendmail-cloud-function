@@ -1,10 +1,10 @@
-from responses import ControllerResponse
+from send_mail.responses import ControllerResponse
 
 
 def test_cloud_send_mail(mocker, mock_event, mock_context):
     import google.cloud.logging
 
-    from function import controllers as ControllersModule
+    from send_mail import controllers as ControllersModule
 
     mocker.patch.object(ControllersModule, "SendController")
     mocker.patch.object(google.cloud.logging, "Client")
