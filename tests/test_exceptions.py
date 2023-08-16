@@ -2,9 +2,9 @@ import pytest
 
 
 def test_mail_server_response_error():
-    from send_mail.exceptions import ApiError
+    from send_mail.exceptions import ApiException
 
-    error = ApiError(status_code=400, message="Test")
+    error = ApiException(status_code=400, message="Test")
 
     assert error.status_code == 400
     assert error.message == "Test"
@@ -13,8 +13,8 @@ def test_mail_server_response_error():
 
 def test_api_response_error(mocker, mock_message_object):
     import requests
-    from send_mail.exceptions import ApiError
-    from send_mail.integrations import Mailgun
+    from send_mail.exceptions import ApiException
+    from send_mail.integrations import MailgunIntegration
 
     mock_session = mocker.Mock()
     mock_response = mocker.Mock()
@@ -25,5 +25,5 @@ def test_api_response_error(mocker, mock_message_object):
     )
     mocker.patch.object(requests, "Session", return_value=mock_session)
 
-    with pytest.raises(ApiError):
-        Mailgun().send(mock_message_object)
+    with pytest.raises(ApiException):
+        MailgunIntegration().send(mock_message_object)

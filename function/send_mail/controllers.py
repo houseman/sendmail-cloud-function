@@ -2,59 +2,50 @@ import base64
 import json
 import logging
 
-from .config import Config
-from .exceptions import ApiError, ControllerError, PayloadError
-from .integrations import Mailgun
+from .exceptions import ApiException, ControllerException, PayloadException
+from .integrations import MailgunIntegration
 from .responses import ControllerResponse
-from .schemas import MailMessage
+from .dtos import MailMessageDTO
 
 
 class SendController:
-    """Controller class that contains logic for sending an Email contained within
-    the encoded Pub/Sub message.
+    """Controller class that contains logic for sending an email message contained
+    within an encoded Pub/Sub message.
     """
 
-    _config = Config()
-
     def __init__(self) -> None:
-        self._integration = Mailgun()
+        self._integration = MailgunIntegration()
 
     def send(self, event: dict) -> ControllerResponse:
-        """Send an email contained within the encoded Pub/Sub message}.
+        """Send an email contained within the encoded Pub/Sub message}"""
 
-        ### Args:
-        - event: Dict contains event data;
-
-        ### Returns:
-        - ControllerResponse
-
-        ### Raises:
-        - ControllerError
-        """
         try:
-            message = self._get_message_from_payload(event)
+            message = self.get_message_from_payload(event)
             result = self._integration.send(message)
             logging.info(f"{result}")
 
             return ControllerResponse(
                 message=result.message, response_code=result.response_code
             )
-        except PayloadError:
+        except PayloadException:
             # Swallow this exception, as we do not want to retry badly-formatted
             # messages
             return ControllerResponse(message="Bad Request", response_code=400)
-        except ApiError as error:
+        except ApiException as error:
             logging.error(f"{error}")
-            raise ControllerError(message=error.message, status_code=error.status_code)
+            raise ControllerException(
+                message=error.message, status_code=error.status_code
+            )
 
-    def _get_message_from_payload(self, event: dict) -> MailMessage:
-        """Return a `MailMessage` object, populated with data from the Pub/Sub message
-        payload.
+    @staticmethod
+    def get_message_from_payload(event: dict) -> MailMessageDTO:
+        """Return a `MailMessageDTO` object, populated with data from the Pub/Sub
+        message payload.
         """
 
         try:
             message = json.loads(base64.b64decode(event["data"]).decode("utf-8"))
-            return MailMessage(
+            return MailMessageDTO(
                 recipient=message["recipient"],
                 sender=message["sender"],
                 subject=message["subject"],
@@ -66,4 +57,4 @@ class SendController:
 
             error_message = f"Message payload could not be decoded: {error}"
             logging.error(error_message)
-            raise PayloadError(message=error_message, status_code=400)
+            raise PayloadException(message=error_message, status_code=400)

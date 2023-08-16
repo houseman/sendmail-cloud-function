@@ -106,7 +106,3 @@ fail_under = 100
 skip_empty = true
 show_missing = true
 exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:"]
-
-[tool.codespell]
-skip = "./htmlcov/**"
-quiet-level = 2

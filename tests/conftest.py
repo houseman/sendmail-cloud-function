@@ -2,7 +2,7 @@ import base64
 import json
 
 import pytest
-from send_mail.schemas import MailMessage
+from send_mail.dtos import MailMessageDTO
 
 
 @pytest.fixture()
@@ -42,7 +42,7 @@ def mock_event(mock_message_encoded):
 
 @pytest.fixture
 def mock_message_object(mocker):
-    return MailMessage(
+    return MailMessageDTO(
         recipient="info@example.com",
         sender="test@example.com",
         subject="Test subject",

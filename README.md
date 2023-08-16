@@ -33,7 +33,7 @@ The content below is mostly derived from the Google Cloud Platform (GCP) documen
 │       ├── exceptions.py
 │       ├── integrations.py
 │       ├── responses.py
-│       └── schemas.py
+│       └── dtos.py
 ├── producer                <-- Producer can be used for local testing
 │   ├── __init__.py
 │   └── send.py

@@ -1,4 +1,4 @@
-class BaseError(Exception):
+class BaseException(Exception):
     status_code: int
     message: str
 
@@ -14,13 +14,13 @@ class BaseError(Exception):
         return f"[{self.status_code}] {self.message}"
 
 
-class ApiError(BaseError):
+class ApiException(BaseException):
     pass
 
 
-class PayloadError(BaseError):
+class PayloadException(BaseException):
     pass
 
 
-class ControllerError(BaseError):
+class ControllerException(BaseException):
     pass

@@ -1,34 +1,30 @@
+from __future__ import annotations
+
 import logging
 
+from typing import TYPE_CHECKING
+
 import requests
-from .config import Config
-from .exceptions import ApiError
+from .config import get_env_int, get_env_str
+from .exceptions import ApiException
 from .responses import ApiResponse
-from .schemas import MailMessage
+
+if TYPE_CHECKING:
+    from .dtos import MailMessageDTO
 
 
-class Mailgun:
-    """Mailgun service integration"""
+class MailgunIntegration:
+    """Mailgun <https://www.mailgun.com/> service integration"""
 
     def __init__(self) -> None:
         self._session = requests.Session()
-        self.host = Config.get_env_val("MAILGUN_HOST")
-        self.domain = Config.get_env_val("MAILGUN_DOMAIN")
-        self.timeout = int(Config.get_env_val("MAILGUN_TIMEOUT") or "3")
-        logging.info(f"API host: {self.host}")
-        self.api_key = Config.get_env_val("MAILGUN_API_SENDING_KEY") or ""
+        self.host = get_env_str("MAILGUN_HOST")
+        self.domain = get_env_str("MAILGUN_DOMAIN")
+        self.api_key = get_env_str("MAILGUN_API_SENDING_KEY")
+        self.timeout = get_env_int("MAILGUN_TIMEOUT", 30)
 
-    def send(self, message: MailMessage) -> ApiResponse:
-        """Send a `MailMessage` object data to the *Mailgun* endpoint.
-        ### Arguments:
-        - message: `MailMessage` schema data class
-
-        ### Returns:
-        - ApiResponse
-
-        ### Raises:
-        - ApiError
-        """
+    def send(self, message: MailMessageDTO) -> ApiResponse:
+        """Send a `MailMessageDTO` object data to the Mailgun API endpoint"""
 
         try:
             response = self._session.post(
@@ -53,4 +49,6 @@ class Mailgun:
             )
         except requests.exceptions.HTTPError as error:
             logging.error(f"{error}")
-            raise ApiError(status_code=error.response.status_code, message=f"{error}")
+            raise ApiException(
+                status_code=error.response.status_code, message=f"{error}"
+            )
